@@ -80,11 +80,11 @@
   .text-content {
 	outline: none;
 	background: white;
-	padding: 16px 16px;
-	margin: 10px 10px;
 	border-radius: 3px;
 	min-height: 256px;
 	height: 100%;
+	width: 100%;
+	padding: 0px 10px 10px 10px;
 	overflow-y: auto;
 	border: 1px solid #ced4da;
 	transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;

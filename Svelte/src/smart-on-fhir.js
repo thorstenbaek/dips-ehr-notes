@@ -3,7 +3,6 @@ import { context } from "./stores";
 
 Smart.ready()
     .then(client => {
-        console.log("client loaded");
         var newContext = {
             client: client,
             error: null
