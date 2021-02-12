@@ -4,16 +4,35 @@
     import { Editor } from "typewriter-editor";
     import Root from "typewriter-editor/lib/Root.svelte";    
     import Toolbar from "./components/Toolbar.svelte";        
-    //import Sidebar from "./components/Sidebar.svelte";        
+    import Patient from "./components/Patient.svelte";        
 
     let error = null;
-    let open = true;        
+    let patient = null;
+    let open = false;        
     
     let editor = new Editor();
     
     function toggleSidebar()
     {
         open = !open;
+    }
+
+    $: {
+        $context?.client?.patient.read()
+            .then(p => {
+                if (p != null)
+                {
+                    var name = "";
+                    p.name[0].given.forEach(g =>
+                    {
+                        name += g + " ";
+                    });
+                    
+                    name += p.name[0].family;
+
+                    editor.setText(name);
+                }                    
+            });
     }
 
     $: {
@@ -30,8 +49,9 @@
     </div>
     <div class="scroll">
         <div class="container">        
-            <div class="content">
-                <Root {editor} class="text-content"/>
+            <div class="content">                    
+                <Root {editor} class="text-content">            
+                </Root>
             </div>
             <div class="sidebar {open ? 'open': ''}">
                 Sidebar
