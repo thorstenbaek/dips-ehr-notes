@@ -11,11 +11,14 @@
     let open = false;        
     
     let editor = new Editor();
+    editor.on("change", delta => {
+        console.log(delta.change);
+    })
     
     function toggleSidebar()
     {
         open = !open;
-    }
+    }    
 
     $: {
         $context?.client?.patient.read()
