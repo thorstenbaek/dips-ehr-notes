@@ -1,0 +1,83 @@
+# Create document:
+mutation CreateDocument($deltas: [DeltaInput]) {
+  createDocument(deltaInputs: $deltas) {
+    id, 
+    deltas 
+    { 
+      content,
+      start,
+      stop
+    }
+  }
+}
+# Variables:
+{
+  "deltas": [
+    {
+      "content": "Thor tester",
+      "start": 0,
+      "stop": 10
+    },
+    {
+      "content": " å mutere GraphQL",
+      "start": 11,
+      "stop": 30
+    }
+  ]
+}
+
+# Update document:
+mutation UpdateDocument($deltas: [DeltaInput]) {
+  updateDocument(id: "29727acbf6a129c0a6f6", deltaInputs: $deltas) {
+    id, 
+    deltas 
+    { 
+      content,
+      start,
+      stop
+    }
+  }
+}
+# Variables:
+{
+  "deltas": [
+    {
+      "content": "Thor tester",
+      "start": 0,
+      "stop": 10
+    },
+    {
+      "content": " å mutere GraphQL",
+      "start": 11,
+      "stop": 30
+    }
+  ]
+}
+
+#Get all documents:
+query
+{
+	documents {
+    id,
+    deltas {content}
+  }
+}
+
+#Get document by id:
+query
+{
+	document(id:"9b97716b457071c0e004") {
+    id,
+    deltas {content}
+  }
+}
+
+#Subscribe for changed documents:
+subscription {
+  document {
+    mutation,    
+    data {
+      id
+    }
+  }
+}

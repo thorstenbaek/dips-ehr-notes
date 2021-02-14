@@ -24,6 +24,15 @@ const typeDefs = `
   type Mutation {
       createDocument(deltaInputs: [DeltaInput]): Document
       updateDocument(id: ID!, deltaInputs: [DeltaInput]): Document
+  }
+  
+  type DeltaSubscriptionPayload {
+      mutation: String!
+      data: Document!
+  }
+
+  type Subscription {
+    document: DeltaSubscriptionPayload
   }`;
 
 export default typeDefs;

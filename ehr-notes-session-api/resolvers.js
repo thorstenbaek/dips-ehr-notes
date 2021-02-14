@@ -39,7 +39,7 @@ var resolvers = {
     },
 
     Mutation: {
-        createDocument: (parent, args) => {
+        createDocument: (parent, args, {pubsub}) => {
             var id = crypto.randomBytes(10).toString("hex");        
             var deltas = args.deltaInputs.map(i => new Delta(i.content, i.start, i.stop));    
             
@@ -48,10 +48,17 @@ var resolvers = {
                     deltas);
             documents.push(document);
             
+            pubsub.publish('document', {
+                document:{
+                    mutation: 'CREATED',
+                    data: document
+                }
+              }); 
+
             return document;
           },
         
-          updateDocument: (_, args) => {
+          updateDocument: (_, args, {pubsub}) => {
             var document = documents.filter(d => d.id == args.id);
             if (document.length == 0) {
                 throw new Error(`no document exists with id ${args.id}`);
@@ -61,10 +68,25 @@ var resolvers = {
             
             var deltas = args.deltaInputs.map(i => new Delta(i.content, i.start, i.stop));    
             document.addDeltas(deltas);
+
+            pubsub.publish('document', {
+                document:{
+                    mutation: 'UPDATED',
+                    data: document
+                }
+              }); 
             
             return document;
           },
     },   
+
+    Subscription: {
+        document:{
+            subscribe(parent, args, {pubsub}){
+              return pubsub.asyncIterator('document');
+            }
+          }
+    }
 }
 
 export default resolvers;
