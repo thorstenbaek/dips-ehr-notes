@@ -7,6 +7,16 @@ export let sidebar;
 
 const dispatch = createEventDispatcher();
 
+function newDocument()
+{
+    dispatch("newDocument");
+}
+
+function openDocument()
+{
+    dispatch("openDocument");
+}
+
 function toggleSidebar()
 {
     dispatch("toggleSidebar");
@@ -16,6 +26,16 @@ function toggleSidebar()
 
 <Toolbar {editor} let:active let:commands>
     <div class="toolbar">
+        <button
+          class="toolbar-button material-icons"          
+          on:click={newDocument}>add</button>
+      
+        <button
+          class="toolbar-button material-icons"
+          on:click={openDocument}>folder_open</button>
+        &nbsp;
+        &nbsp;
+        &nbsp;
         <button
           class="toolbar-button material-icons"
           class:active={active.header === 2}
@@ -45,9 +65,8 @@ function toggleSidebar()
           class="toolbar-button material-icons"
           disabled={!active.redo}
           on:click={commands.redo}>redo</button>
-
         <button
-          class="toolbar-button material-icons right"
+          class="toolbar-button material-icons"
           class:active={sidebar}
           on:click={toggleSidebar}>view_sidebar</button>
       </div>
@@ -56,16 +75,16 @@ function toggleSidebar()
 <style>
     .toolbar {
       display: flex;      
-      background: #eee;
-      padding: 8px;
-      margin-bottom: 8px;
+      height: 30px;
+      background: #ededed;
+      padding: 8px;      
       box-shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 2px 6px rgba(0, 0, 0, .1);
     }
     .toolbar-button {
       display: flex;      
       align-items: center;
       justify-content: center;
-      background: #fff;
+      background: #ededed;
       margin: 0;
       width: 30px;
       height: 30px;
@@ -74,11 +93,7 @@ function toggleSidebar()
       border: 1px solid #ced4da;
       transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
       cursor: pointer;
-    }
-
-    .right {
-      flex-direction: row-reverse;  
-    }
+    }   
 
     .toolbar-button:hover {
       outline: none;

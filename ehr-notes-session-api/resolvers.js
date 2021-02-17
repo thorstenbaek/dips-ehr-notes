@@ -1,89 +1,91 @@
 import crypto from "crypto";
-import documentData from "./documents.js";
+import sessionData from "./sessions.js";
+import {Session, Delta} from "./classes/Session.js";
+import {Document} from "./classes/Document.js";
+import documents from "./documents.js";
 
-class Document {
-     constructor(id, deltas) {
-         this.id = id;
-         this.deltas = deltas;
-     }
-
-     addDeltas(deltas)
-     {
-         this.deltas.push(...deltas);
-     }
-}
-
-class Delta {
-    constructor(content, start, stop) {
-        this.content = content;
-        this.start = start;
-        this.stop = stop;
-    }    
-}
-
-const documents = documentData.map(d => new Document(d.id, d.deltas));
+const sessions = sessionData.map(d => new Session(d.id, d.deltas));
 
 var resolvers = {
     Query: {
-        document: (parent, args) => {
-            var document = documents.filter(d => d.id == args.id);
+        documents() {
+            return documents.map(document => {
+              var documentSession = sessions.filter(session => session.id === document.id);
+              console.log(documentSession.length);                
+              
+              
+                return new Document(
+                  document.id,
+                  document.title,
+                  document.date,
+                  document.author,
+                  document.markdown,
+                  documentSession[0] != null
+                )
+              
+              
+            })            
+        },
+
+        session: (_, args) => {
+            var document = sessions.filter(d => d.id == args.id);
             if (document.length == 0) {
                 throw new Error(`no document exists with id ${args.id}`);
             }
             return document[0];
           },
         
-        documents() {
-            return documents;
+        sessions() {
+            return sessions;
         },    
     },
 
     Mutation: {
-        createDocument: (parent, args, {pubsub}) => {
+        createSession: (_, args, {pubsub}) => {
             var id = crypto.randomBytes(10).toString("hex");        
             var deltas = args.deltaInputs.map(i => new Delta(i.content, i.start, i.stop));    
             
-            var document = new Document(
+            var session = new Session(
                     id, 
                     deltas);
-            documents.push(document);
+            sessions.push(session);
             
-            pubsub.publish('document', {
-                document:{
+            pubsub.publish('session', {
+                session:{
                     mutation: 'CREATED',
-                    data: document
+                    data: session
                 }
               }); 
 
-            return document;
+            return session;
           },
         
-          updateDocument: (_, args, {pubsub}) => {
-            var document = documents.filter(d => d.id == args.id);
-            if (document.length == 0) {
+          updateSession: (_, args, {pubsub}) => {
+            var filteredSessions = sessions.filter(d => d.id == args.id);
+            if (filteredSessions.length == 0) {
                 throw new Error(`no document exists with id ${args.id}`);
             }
             
-            var document = documents[0];
+            var session = filteredSessions[0];
             
             var deltas = args.deltaInputs.map(i => new Delta(i.content, i.start, i.stop));    
-            document.addDeltas(deltas);
+            session.addDeltas(deltas);
 
-            pubsub.publish('document', {
-                document:{
+            pubsub.publish('session', {
+                session:{
                     mutation: 'UPDATED',
-                    data: document
+                    data: session
                 }
               }); 
             
-            return document;
+            return session;
           },
     },   
 
     Subscription: {
-        document:{
-            subscribe(parent, args, {pubsub}){
-              return pubsub.asyncIterator('document');
+        session:{
+            subscribe(_, __, {pubsub}){
+              return pubsub.asyncIterator('session');
             }
           }
     }

@@ -1,23 +1,57 @@
 <script>  
-    import { context } from "./stores.js";      
     import './smart-on-fhir';
+    import { onDestroy } from 'svelte';
+    import { context } from "./stores.js";      
     import { Editor } from "typewriter-editor";
+    import marked from 'marked'
+    //Consider changing to this package supporting two way md-conversion: https://github.com/showdownjs/showdown
     import Root from "typewriter-editor/lib/Root.svelte";    
+    import DialogContainer from "./components/DialogContainer.svelte";
     import Toolbar from "./components/Toolbar.svelte";        
-    import Patient from "./components/Patient.svelte";        
+    import Sidebar from "./components/Sidebar.svelte";
+    import DocumentList from "./components/DocumentList.svelte";        
+    import Session from './classes/Session.js';
 
     let error = null;
-    let patient = null;
-    let open = false;        
+    let sidebar = false;        
+    let left = false;        
+    let showDialog = true;
+    let session = null;
+    let document = null;
+    
+    onDestroy(() => {
+        console.log("Destroying");
+    });
     
     let editor = new Editor();
     editor.on("change", delta => {
-        console.log(delta.change);
+        if (session == null)
+        {
+            session = new Session(document.id);
+        }
+
+        if (delta != null && delta.change != null) {
+            console.log(delta?.change);
+        }
     })
     
+    function closeOverlay()
+    {
+        showDialog = false;
+    }    
+
+    function openDocument(arg)
+    {
+        //session.Close();
+        session = null;
+        
+        document = arg.detail;
+        editor.setHTML(marked(arg.detail.markdown));                
+    }    
+
     function toggleSidebar()
     {
-        open = !open;
+        sidebar = !sidebar;
     }    
 
     $: {
@@ -33,7 +67,7 @@
                     
                     name += p.name[0].family;
 
-                    editor.setText(name);
+                    // editor.setText(name); //TODO add this as general template variable resolution
                 }                    
             });
     }
@@ -46,59 +80,36 @@
 {#if error != null}
     <p>{error}</p>    
 {:else}     
-<div class="main">
-    <div class="toolbar">
-        <Toolbar editor={editor} sidebar={open} on:toggleSidebar={toggleSidebar}/>
-    </div>
+    <DialogContainer {showDialog} on:close={closeOverlay}>
+        <DocumentList on:openDocument={openDocument}/>
+    </DialogContainer>
+    <Toolbar editor={editor} 
+        sidebar={left} 
+        on:newDocument={() => {showDialog = true}} 
+        on:openDocument={() => {showDialog = true}} 
+        on:toggleSidebar={toggleSidebar} />
+    
     <div class="scroll">
-        <div class="container">        
-            <div class="content">                    
-                <Root {editor} class="text-content">            
-                </Root>
-            </div>
-            <div class="sidebar {open ? 'open': ''}">
-                Sidebar
-            </div>
+        <div class="container">                                
+            <Root {editor} class="text-content" />            
+            <Sidebar active={sidebar} mode="narrow"> 
+                <p>Her comes the NLP results</p>
+            </Sidebar>
         </div>
-    </div>
-</div>
+    </div>       
 {/if}
 
-<style>
-    .main {    
-        overflow: hidden;
-        height: calc(100%);
-    }
-
-    .toolbar {
-        height: 46px;
-        background: #cccccc;
-    }
-    
+<style>        
     .scroll {    
         overflow: auto;
-        height: calc(100% - 46px);        
+        height: calc(100% - 58px);        
     }
     
     .container {    
+        overflow: hidden;
         height: 100%;
         width: 100%;
         display: table;    
-    }
-    
-    .sidebar {
-        display: none;
-        vertical-align: top;     
-        background: #cccccc;   
-    }
-
-    .open {
-        display: table-cell;
-    }
-    
-    .content {
-        display: table-cell;
-        vertical-align: top;
-        width: 70%;    
-    }
-    </style>
+    }    
+        
+</style>

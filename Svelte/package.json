@@ -16,9 +16,15 @@
     "dev": "webpack serve --content-base public"
   },
   "dependencies": {
+    "@apollo/client": "^3.3.8",
+    "apollo-boost": "^0.4.9",
     "concurrently": "^5.3.0",
     "express": "^4.17.1",
     "fhirclient": "^2.3.10",
+    "graphql": "^15.5.0",
+    "graphql-tag": "^2.11.0",
+    "marked": "^2.0.0",
+    "svelte-apollo": "^0.4.0",
     "svelte-routing": "^1.5.0",
     "typewriter-editor": "^0.6.0"
   }

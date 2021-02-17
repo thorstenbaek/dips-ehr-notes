@@ -1,6 +1,6 @@
-# Create document:
-mutation CreateDocument($deltas: [DeltaInput]) {
-  createDocument(deltaInputs: $deltas) {
+# Create session:
+mutation CreateSession($deltas: [DeltaInput]) {
+  createSession(deltaInputs: $deltas) {
     id, 
     deltas 
     { 
@@ -26,9 +26,9 @@ mutation CreateDocument($deltas: [DeltaInput]) {
   ]
 }
 
-# Update document:
-mutation UpdateDocument($deltas: [DeltaInput]) {
-  updateDocument(id: "29727acbf6a129c0a6f6", deltaInputs: $deltas) {
+# Update session:
+mutation UpdateSession($deltas: [DeltaInput]) {
+  updateSession(id: "101ff73b090d76fa46b8", deltaInputs: $deltas) {
     id, 
     deltas 
     { 
@@ -54,27 +54,27 @@ mutation UpdateDocument($deltas: [DeltaInput]) {
   ]
 }
 
-#Get all documents:
+#Get all sessions:
 query
 {
-	documents {
+	sessions {
     id,
     deltas {content}
   }
 }
 
-#Get document by id:
+#Get session by id:
 query
 {
-	document(id:"9b97716b457071c0e004") {
+	session(id:"9b97716b457071c0e004") {
     id,
     deltas {content}
   }
 }
 
-#Subscribe for changed documents:
+#Subscribe for changed sessions:
 subscription {
-  document {
+  session {
     mutation,    
     data {
       id
