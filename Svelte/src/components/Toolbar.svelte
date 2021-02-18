@@ -7,19 +7,9 @@ export let sidebar;
 
 const dispatch = createEventDispatcher();
 
-function newDocument()
-{
-    dispatch("newDocument");
-}
-
-function openDocument()
-{
-    dispatch("openDocument");
-}
-
 function toggleSidebar()
 {
-    dispatch("toggleSidebar");
+
 }
 
 </script>
@@ -28,11 +18,13 @@ function toggleSidebar()
     <div class="toolbar">
         <button
           class="toolbar-button material-icons"          
-          on:click={newDocument}>add</button>
-      
+          on:click={() => dispatch("closeDocument")}>close</button>
+        <button
+          class="toolbar-button material-icons"          
+          on:click={() => dispatch("newDocument")}>add</button>      
         <button
           class="toolbar-button material-icons"
-          on:click={openDocument}>folder_open</button>
+          on:click={() => dispatch("openDocument")}>folder_open</button>
         &nbsp;
         &nbsp;
         &nbsp;
@@ -68,13 +60,14 @@ function toggleSidebar()
         <button
           class="toolbar-button material-icons"
           class:active={sidebar}
-          on:click={toggleSidebar}>view_sidebar</button>
+          on:click={() => dispatch("toggleSidebar")}>view_sidebar</button>
       </div>
 </Toolbar>
 
 <style>
-    .toolbar {
+    .toolbar {      
       display: flex;      
+      width: 100%;
       height: 30px;
       background: #ededed;
       padding: 8px;      
