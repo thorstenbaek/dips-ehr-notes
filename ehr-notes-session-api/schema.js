@@ -23,7 +23,7 @@ const typeDefs = `
   }
   
   type Session {
-      id: ID!
+      documentId: ID
       deltas: [Delta]
   }
   
@@ -34,17 +34,15 @@ const typeDefs = `
   }
   
   type Mutation {
-      createSession(deltaInputs: [DeltaInput]): Session
-      updateSession(id: ID!, deltaInputs: [DeltaInput]): Session
-  }
-  
-  type DeltaSubscriptionPayload {
-      mutation: String!
-      data: Session!
+      createSession(documentId: ID!): Session
+      deleteSession(documentId: ID!): ID
   }
 
   type Subscription {
-    session: DeltaSubscriptionPayload
-  }`;
+    sessionCreated: Session,
+    sessionDeleted: ID
+  }
+  
+  `;
 
 export default typeDefs;

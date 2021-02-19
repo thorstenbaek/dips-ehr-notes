@@ -1,18 +1,17 @@
-import crypto from "crypto";
-import sessionData from "./sessions.js";
+import { PubSub, withFilter } from "apollo-server";
 import {Session, Delta} from "./classes/Session.js";
 import {Document} from "./classes/Document.js";
 import documents from "./documents.js";
 
-const sessions = sessionData.map(d => new Session(d.id, d.deltas));
+var sessions = []; //sessionData.map(d => new Session(d.documentId));
+const pubsub = new PubSub();
 
 var resolvers = {
     Query: {
         documents() {
             return documents.map(document => {
-              var documentSession = sessions.filter(session => session.id === document.id);
-              console.log(documentSession.length);                
-              
+              console.log(sessions.length);
+              var documentSession = sessions.filter(s => s.documentId == document.id);
               
                 return new Document(
                   document.id,
@@ -21,9 +20,7 @@ var resolvers = {
                   document.author,
                   document.markdown,
                   documentSession[0] != null
-                )
-              
-              
+                )  
             })            
         },
 
@@ -41,54 +38,39 @@ var resolvers = {
     },
 
     Mutation: {
-        createSession: (_, args, {pubsub}) => {
-            var id = crypto.randomBytes(10).toString("hex");        
-            var deltas = args.deltaInputs.map(i => new Delta(i.content, i.start, i.stop));    
-            
+        createSession: (_, args) => {            
             var session = new Session(
-                    id, 
-                    deltas);
+                    args.documentId, 
+                    null);
             sessions.push(session);
-            
-            pubsub.publish('session', {
-                session:{
-                    mutation: 'CREATED',
-                    data: session
-                }
-              }); 
+                        
+            pubsub.publish(["SESSION_CREATED"], {
+              sessionCreated:{
+                  documentId: session.documentId                  
+              }
+            }); 
 
             return session;
-          },
-        
-          updateSession: (_, args, {pubsub}) => {
-            var filteredSessions = sessions.filter(d => d.id == args.id);
-            if (filteredSessions.length == 0) {
-                throw new Error(`no document exists with id ${args.id}`);
-            }
-            
-            var session = filteredSessions[0];
-            
-            var deltas = args.deltaInputs.map(i => new Delta(i.content, i.start, i.stop));    
-            session.addDeltas(deltas);
+        },                  
+        deleteSession: (_, args) => {
+            sessions = sessions.filter(s => s.documentId !== args.documentId);
 
-            pubsub.publish('session', {
-                session:{
-                    mutation: 'UPDATED',
-                    data: session
-                }
-              }); 
-            
-            return session;
-          },
-    },   
+            pubsub.publish(["SESSION_DELETED"], {
+              sessionDeleted: args.documentId                                
+            });
 
-    Subscription: {
-        session:{
-            subscribe(_, __, {pubsub}){
-              return pubsub.asyncIterator('session');
-            }
-          }
+            return args.documentId;
+        }
+    }, 
+
+    Subscription: {        
+      sessionCreated: {
+        subscribe: () => pubsub.asyncIterator(["SESSION_CREATED"])
+      },
+      sessionDeleted: {
+        subscribe: () => pubsub.asyncIterator(["SESSION_DELETED"])
     }
+  }
 }
 
 export default resolvers;

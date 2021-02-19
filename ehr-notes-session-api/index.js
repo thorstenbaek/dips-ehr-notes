@@ -1,14 +1,15 @@
-import { GraphQLServer, PubSub }  from 'graphql-yoga';
-import typeDefs from "./typeDefs.js";
+import { ApolloServer }  from 'apollo-server';
+import typeDefs from "./schema.js";
 import resolvers from "./resolvers.js";
 
-const pubsub = new PubSub();
-const server = new GraphQLServer(
+const server = new ApolloServer(
     { 
         typeDefs, 
         resolvers,
-        context: {
-            pubsub
-        }
     })
-server.start(() => console.log('Server is running on localhost:4000'))
+
+
+server.listen().then(({ url }) => {
+    console.log(`🚀  Server ready at ${url}`);
+});
+    

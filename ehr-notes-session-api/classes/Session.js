@@ -1,7 +1,12 @@
 export class Session {
-    constructor(id, deltas) {
-        this.id = id;
-        this.deltas = deltas;
+    constructor(documentId, deltas) {
+        this.documentId = documentId;
+        if (deltas == null) {
+            this.deltas = []
+        }
+        else {
+            this.deltas = deltas;
+        }
     }
 
     addDeltas(deltas)
