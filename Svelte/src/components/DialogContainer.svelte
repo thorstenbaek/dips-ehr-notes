@@ -2,27 +2,29 @@
     import { createEventDispatcher } from 'svelte';
     
     const dispatch = createEventDispatcher();
-
+    
     export let showDialog;
 
     function close()
-    {
+    {        
         dispatch("close");
     }
 </script>
 
 <div>        
-    <div class="overlay {showDialog ? 'open' : ''}" on:click={close}>
+    {#if showDialog}
+    <div class="overlay" on:click={close}>
         <div class="child">
             <slot/>
         </div>
     </div>    
+    {/if}
 </div>
 
 <style>
     .overlay {        
         justify-content: center;
-        display: none;
+        display: flex;
         position:absolute;
         vertical-align: center;
         align-content: center;

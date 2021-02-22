@@ -1,25 +1,12 @@
 export class Session {
-    constructor(documentId, deltas) {
-        this.documentId = documentId;
-        if (deltas == null) {
-            this.deltas = []
-        }
-        else {
-            this.deltas = deltas;
-        }
+    constructor(id, documentId, user) {
+        this.id = id,
+        this.documentId = documentId;        
+        this.users = [user];
     }
 
-    addDeltas(deltas)
+    addUser(user)
     {
-        this.deltas.push(...deltas);
+        this.users.push(...user);
     }
 }
-
-export class Delta {
-   constructor(content, start, stop) {
-       this.content = content;
-       this.start = start;
-       this.stop = stop;
-   }    
-}
-

@@ -13,18 +13,13 @@ const typeDefs = `
     date: String
     author: String
     markdown: String
-    hasSession: Boolean
+    session: Session
   }
-  
-  type Delta {
-    content: String
-    start: Int
-    stop: Int
-  }
-  
+    
   type Session {
+      id: String
       documentId: ID
-      deltas: [Delta]
+      users: [String]
   }
   
   input DeltaInput {
@@ -34,12 +29,13 @@ const typeDefs = `
   }
   
   type Mutation {
-      createSession(documentId: ID!): Session
-      deleteSession(documentId: ID!): ID
+      createSession(documentId: ID!, user: String!): Session
+      deleteSession(documentId: ID!, user: String!): ID
   }
 
   type Subscription {
-    sessionCreated: Session,
+    sessionCreated(documentId: ID!): Session,
+    sessionChanged(documentId: ID!): Session,
     sessionDeleted: ID
   }
   

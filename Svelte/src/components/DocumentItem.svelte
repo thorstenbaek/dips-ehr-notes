@@ -7,8 +7,8 @@
 
 
 <li on:click={() => dispatch("openDocument", document)}>
-    <span class="{document.hasSession ? 'session':'hidden'}">●</span>    
-    {document.title} {document.hasSession}
+    <span class="{document.session != null ? 'session':'hidden'}">●</span>    
+    {document.title} {document.session}
 </li>
 
 <style>

@@ -6,7 +6,18 @@ const server = new ApolloServer(
     { 
         typeDefs, 
         resolvers,
+        subscriptions: {
+            path: '/subscriptions',
+            onConnect: (connectionParams, webSocket, context) => {
+              console.log('Client connected');
+            },
+            onDisconnect: (webSocket, context) => {
+              console.log('Client disconnected')
+            },
+          },
     })
+
+    
 
 
 server.listen().then(({ url }) => {

@@ -10,9 +10,9 @@
 
     const dispatch = createEventDispatcher();
 
-    let session = null;
     export let document = null;
     let sidebar = false;            
+    let session = null;
 
     let editor = new Editor();
     editor.on("change", delta => {        
@@ -22,39 +22,47 @@
     })
 
     $:{
-        //session.Close();
-        //session = null;
         if (document != null)
+        {                    
+            editor.setHTML(marked(document.markdown));                            
+            session = document.session;
+        }
+        else
         {
-            editor.setHTML(marked(document.markdown));                
+            editor.setText(null);
+            session = null;
         }
     }
 
     function toggleSidebar()
     {
         sidebar = !sidebar;
-    }        
+    }   
+    
+    function closeDocument()
+    {
+        document = null;
+        dispatch("showDialog");
+    }
 
 </script>
     {#if document}
-    <Toolbar editor={editor} 
-            sidebar={sidebar} 
-        on:newDocument={() => dispatch("showDialog")} 
-        on:openDocument={() => dispatch("showDialog")} 
-        on:closeDocument={() => {
-                document = null;
-                dispatch("showDialog");}} 
-        on:toggleSidebar={toggleSidebar} />
-    <Session document={document}>
-        <div class="scroll">
-            <div class="container">            
-                <Root {editor} class="text-content" />                    
-                <Sidebar active={sidebar} mode="narrow"> 
-                    <p>Here comes the NLP results</p>
-                </Sidebar>
-            </div>
-        </div>       
-    </Session>
+        <Toolbar editor={editor} 
+                sidebar={sidebar} 
+            on:newDocument={() => closeDocument()} 
+            on:openDocument={() => closeDocument()}
+            on:closeDocument={() => closeDocument()}
+            on:toggleSidebar={toggleSidebar} />
+        <Session documentId={document.documentId}>
+            <div class="scroll">
+                <div class="container">            
+                    <Root {editor} class="text-content" />                    
+                    <Sidebar active={sidebar} mode="narrow"> 
+                        <p>Here comes the NLP results</p>
+                    </Sidebar>
+                </div>
+            </div>       
+        </Session>
     {/if}
 <style>        
     .scroll {    
