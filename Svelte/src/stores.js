@@ -3,9 +3,9 @@ import asyncable from "svelte-asyncable";
 import { query } from "svelte-apollo";
 import gql from "graphql-tag";
 import v4 from "uuid";
+import './SmartOnFhirStore';
 
 export const user = readable(v4());
-export const context = writable(null);
 export const sidebar = writable(null);
 
 export const sessionsStore = asyncable(async () => {

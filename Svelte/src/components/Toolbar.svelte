@@ -17,18 +17,6 @@ function toggleSidebar()
 <Toolbar {editor} let:active let:commands>
     <div class="toolbar">
         <button
-          class="toolbar-button material-icons"          
-          on:click={() => dispatch("closeDocument")}>close</button>
-        <button
-          class="toolbar-button material-icons"          
-          on:click={() => dispatch("newDocument")}>add</button>      
-        <button
-          class="toolbar-button material-icons"
-          on:click={() => dispatch("openDocument")}>folder_open</button>
-        &nbsp;
-        &nbsp;
-        &nbsp;
-        <button
           class="toolbar-button material-icons"
           class:active={active.header === 2}
           on:click={commands.header2}>title</button>

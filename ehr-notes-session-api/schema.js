@@ -3,8 +3,9 @@
 const typeDefs = `
   type Query {    
     sessions: [Session]
-    session(id: ID!): Session    
+    session(documentId: ID!): Session    
     documents: [Document]
+    document(id: ID!): Document
   }
 
   type Document {

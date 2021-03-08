@@ -9,7 +9,7 @@ const pubsub = new PubSub();
 
 var resolvers = {
     Query: {
-        documents() {
+        documents: () => {
             return documents.map(document => {
               var documentSession = sessions.filter(s => s.documentId == document.id);
               console.log(documentSession.length);
@@ -25,15 +25,23 @@ var resolvers = {
             })            
         },
 
+        document: (_, args) => {
+          var document = documents.filter(d => d.id == args.id);
+          if (document.length == 0) {
+            throw new Error(`no document exists with id ${args.id}`);
+          }
+          return document[0];          
+        },
+
         session: (_, args) => {
-            var document = sessions.filter(d => d.id == args.id);
-            if (document.length == 0) {
-                throw new Error(`no document exists with id ${args.id}`);
+            var session = sessions.filter(s => s.documentId == args.documentId);
+            if (session.length == 0) {
+                return null;
             }
-            return document[0];
+            return session[0];
           },
         
-        sessions() {
+        sessions: () => {
             return sessions;
         },    
     },

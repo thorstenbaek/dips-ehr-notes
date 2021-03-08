@@ -1,16 +1,13 @@
 <script>
     import { Editor } from "typewriter-editor";
     import marked from 'marked'
-    import { createEventDispatcher } from 'svelte';    
     //Consider changing to this package supporting two way md-conversion: https://github.com/showdownjs/showdown
     import Root from "typewriter-editor/lib/Root.svelte";    
     import Toolbar from "./Toolbar.svelte";            
-    import Session from "./Session.svelte";
     import Sidebar from "./Sidebar.svelte";
+    // import Session from "./Session.svelte";    
 
-    const dispatch = createEventDispatcher();
-
-    export let document = null;
+    export let markdown = null;
     let sidebar = false;            
     let session = null;
 
@@ -21,16 +18,16 @@
         }
     })
 
-    $:{
-        if (document != null)
+    $:{        
+        if (markdown != null)
         {                    
-            editor.setHTML(marked(document.markdown));                            
-            session = document.session;
+            editor.setHTML(marked(markdown));                            
+            //session = document.session;
         }
         else
         {
             editor.setText(null);
-            session = null;
+            //session = null;
         }
     }
 
@@ -39,43 +36,32 @@
         sidebar = !sidebar;
     }   
     
-    function closeDocument()
-    {
-        document = null;
-        dispatch("showDialog");
-    }
-
 </script>
-    {#if document}
-        <Toolbar editor={editor} 
-                sidebar={sidebar} 
-            on:newDocument={() => closeDocument()} 
-            on:openDocument={() => closeDocument()}
-            on:closeDocument={() => closeDocument()}
-            on:toggleSidebar={toggleSidebar} />
-        <Session documentId={document.documentId}>
-            <div class="scroll">
-                <div class="container">            
-                    <Root {editor} class="text-content" />                    
-                    <Sidebar active={sidebar} mode="narrow"> 
-                        <p>Here comes the NLP results</p>
-                    </Sidebar>
-                </div>
-            </div>       
-        </Session>
-    {/if}
+    <Toolbar editor={editor} 
+            sidebar={sidebar} 
+        on:toggleSidebar={toggleSidebar} />
+        <div class="scroll">
+            <div class="container">
+                <Root {editor} class="text-context" />   
+                <Sidebar active={sidebar} mode="narrow"> 
+                    <p>Here comes the NLP results</p>
+                </Sidebar>
+            </div>
+        </div>                 
+    <!-- <Session documentId={document.documentId}>
+        editor here?
+    </Session> -->
 <style>        
     .scroll {    
-        overflow: auto;
-        height: 100%;        
+        overflow: auto;        
+        height: calc(100% - 73px);
     }
-    
+
     .container {    
         overflow: hidden;
         height: 100%;
         width: 100%;
         display: table;    
     }    
-        
 </style>
 
