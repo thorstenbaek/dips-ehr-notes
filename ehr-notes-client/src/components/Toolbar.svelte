@@ -1,16 +1,11 @@
 <script>
-import Toolbar from 'typewriter-editor/lib/Toolbar.svelte';
-import { createEventDispatcher } from 'svelte';
+  import Toolbar from 'typewriter-editor/lib/Toolbar.svelte';
+  import { createEventDispatcher } from 'svelte';
 
-export let editor;
-export let sidebar;
+  export let editor;
+  export let sidebar;
 
-const dispatch = createEventDispatcher();
-
-function toggleSidebar()
-{
-
-}
+  const dispatch = createEventDispatcher();
 
 </script>
 
@@ -18,31 +13,49 @@ function toggleSidebar()
     <div class="toolbar">
         <button
           class="toolbar-button material-icons"
+          title="Heading 2"
           class:active={active.header === 2}
           on:click={commands.header2}>title</button>
     
         <button
           class="toolbar-button material-icons header3"
+          title="Heading 3"
           class:active={active.header === 3}
           on:click={commands.header3}>title</button>
     
         <button
           class="toolbar-button material-icons"
+          title="Bullet list"
+          class:active={active.list === "bullet"}
+          on:click={commands.bulletList}>format_list_bulleted</button>
+
+        <button
+          class="toolbar-button material-icons"
+          title="Ordered list"
+          class:active={active.list === "ordered"}
+          on:click={commands.orderedList}>format_list_numbered</button>
+
+        <button
+          class="toolbar-button material-icons"
+          title="Bold"
           class:active={active.bold}
           on:click={commands.bold}>format_bold</button>
     
         <button
           class="toolbar-button material-icons"
+          title="Italic"
           class:active={active.italic}
-          on:click={commands.italic}>format_italic</button>
-    
+          on:click={commands.italic}>format_italic</button>                
+        &nbsp;&nbsp;&nbsp;
         <button
           class="toolbar-button material-icons"
+          title="Undo"
           disabled={!active.undo}
           on:click={commands.undo}>undo</button>
     
         <button
           class="toolbar-button material-icons"
+          title="Redo"
           disabled={!active.redo}
           on:click={commands.redo}>redo</button>
         <button
@@ -70,19 +83,14 @@ function toggleSidebar()
       width: 30px;
       height: 30px;
       margin-right: 4px;
-      border-radius: 4px;
-      border: 1px solid #ced4da;
-      transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
       cursor: pointer;
     }   
 
     .toolbar-button:hover {
       outline: none;
-      border-color: #80bdff;
-      box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+      background: #fdfdfd;      
     }
     .toolbar-button.active {
-      border-color: #80bdff;
       background: #eaf4ff;
     }
     .header3 {

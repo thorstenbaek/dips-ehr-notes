@@ -2,7 +2,8 @@
     import { Editor } from "typewriter-editor";
     import marked from 'marked'
     //Consider changing to this package supporting two way md-conversion: https://github.com/showdownjs/showdown
-    import Root from "typewriter-editor/lib/Root.svelte";    
+    //import Root from "typewriter-editor/lib/Root.svelte";    
+    import asRoot from "typewriter-editor/lib/asRoot";
     import Toolbar from "./Toolbar.svelte";            
     import Sidebar from "./Sidebar.svelte";
     // import Session from "./Session.svelte";    
@@ -42,8 +43,8 @@
         on:toggleSidebar={toggleSidebar} />
         <div class="scroll">
             <div class="container">
-                <Root {editor} class="text-context" />   
-                <Sidebar active={sidebar} mode="narrow"> 
+                <div use:asRoot={editor} class="editor" spellcheck="false" />
+                <Sidebar active={sidebar} mode="narrow">
                     <p>Here comes the NLP results</p>
                 </Sidebar>
             </div>
@@ -63,5 +64,19 @@
         width: 100%;
         display: table;    
     }    
-</style>
 
+    .editor {
+        padding: 25px 12px;
+        border: none;
+        height: calc(100% - 52px);     
+        background: white;            
+    }    
+
+    .editor:active {
+        border: none;
+    }
+  
+    .editor:focus {
+        border: none;
+    }          
+</style>
