@@ -2,11 +2,17 @@
     import { resource } from '../SmartOnFhirStore.js';
     import Editor from './Editor.svelte';
 
-    let markdown = null;
+    let document = null;
 
-    $: {        
-        markdown = $resource?.content[0].attachment?.data;    
+    $: {                
+        if ($resource) {            
+            document = {
+                id: $resource.id,
+                title: $resource.description,
+                markdown: $resource.content[0].attachment?.data
+            }
+        }
     }
 </script>
 
-<Editor {markdown}/>
+<Editor {document}/>

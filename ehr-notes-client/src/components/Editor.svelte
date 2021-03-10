@@ -6,11 +6,10 @@
     import asRoot from "typewriter-editor/lib/asRoot";
     import Toolbar from "./Toolbar.svelte";            
     import Sidebar from "./Sidebar.svelte";
-    // import Session from "./Session.svelte";    
+    import Session from "./Session.svelte";    
 
-    export let markdown = null;
+    export let document = null;
     let sidebar = false;            
-    let session = null;
 
     let editor = new Editor();
     editor.on("change", delta => {        
@@ -20,15 +19,13 @@
     })
 
     $:{        
-        if (markdown != null)
+        if (document != null)
         {                    
-            editor.setHTML(marked(markdown));                            
-            //session = document.session;
+            editor.setHTML(marked(document.markdown));                            
         }
         else
         {
             editor.setText(null);
-            //session = null;
         }
     }
 
@@ -38,20 +35,21 @@
     }   
     
 </script>
-    <Toolbar editor={editor} 
-            sidebar={sidebar} 
-        on:toggleSidebar={toggleSidebar} />
-        <div class="scroll">
-            <div class="container">
-                <div use:asRoot={editor} class="editor" spellcheck="false" />
-                <Sidebar active={sidebar} mode="narrow">
-                    <p>Here comes the NLP results</p>
-                </Sidebar>
-            </div>
-        </div>                 
-    <!-- <Session documentId={document.documentId}>
-        editor here?
-    </Session> -->
+    {#if document}
+        <Session document={document}>
+            <Toolbar editor={editor} 
+                    sidebar={sidebar} 
+                on:toggleSidebar={toggleSidebar} />
+                <div class="scroll">
+                    <div class="container">
+                        <div use:asRoot={editor} class="editor" spellcheck="false" />
+                        <Sidebar active={sidebar} mode="narrow">
+                            <p>Here comes the NLP results</p>
+                        </Sidebar>
+                    </div>
+                </div>                     
+        </Session>
+    {/if}
 <style>        
     .scroll {    
         overflow: auto;        
@@ -68,7 +66,7 @@
     .editor {
         padding: 25px 12px;
         border: none;
-        height: calc(100% - 52px);     
+        height: calc(100% - 50px);     
         background: white;            
     }    
 

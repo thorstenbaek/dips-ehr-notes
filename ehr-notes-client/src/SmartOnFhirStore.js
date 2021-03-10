@@ -24,10 +24,10 @@ export const patient = derived(
 export const encounter = derived(
     fhir,
     ($fhir, set) => {
-        if ($fhir != null && $fhir.client != null)
-        {
-            $fhir.client.encounter.read().then(e => set(e));
-        }
+        // if ($fhir != null && $fhir.client != null)
+        // {
+        //     $fhir.client.encounter.read().then((res, err) => set(res));
+        // }
     }
 )
 
@@ -39,7 +39,6 @@ export const resource = derived(
             var resourceId = $fhir.client.getState("tokenResponse.resource");
             $fhir.client.request(resourceId).then(
                 resource => {
-                    console.log(resource);
                     set(resource);
                 });                       
         }

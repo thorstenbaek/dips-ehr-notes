@@ -1,119 +1,74 @@
-<script context="module">
+<script>
     import { mutation, subscribe } from "svelte-apollo";
     import gql from 'graphql-tag';
-    import { user } from "../stores";        
-</script>
-<script>
-    import { onDestroy } from 'svelte';
-
-    export let session = null;
-    export let documentId = null;
-
-    const SESSIONCHANGED_SUBSCRIPTION = gql`
-        subscription($documentId:ID!) {
-            sessionChanged(documentId:$documentId) {
-                id 
-                documentId
-                users
-            }
-        }`;         
+    import {user} from "../SmartOnFhirStore";
+    import {sessionsUrl} from "../SessionsStore";
+import { select_option } from "svelte/internal";
     
+    export let document;
+    let session = null;
+
     const CREATESESSION_MUTATION = gql`    
-        mutation($documentId: ID!, $user: String!){
-            createSession(documentId: $documentId, user: $user) {
+        mutation($document: String!, $user: String!){
+            createSession(document: $document, user: $user) {
                 id
-                documentId
+                document,
+                users
             }
         }`;
     const createSession = mutation(CREATESESSION_MUTATION);
 
     const DELETESESSION_MUTATION = gql`
-        mutation($documentId: ID!, $user: String!){
-            deleteSession(documentId: $documentId, user: $user)
-        }
-    `;
+        mutation($document: String!, $user: String!){
+            deleteSession(document: $document, user: $user)
+        }`;
     const deleteSession = mutation(DELETESESSION_MUTATION);
-    
-    $: {                        
-        if (session == null)
-        {
+
+    $: {
+        if ($user && document && session == null)
+        {            
             createSession({
                 variables: {                
-                    documentId: documentId,
-                    user: $user
+                    document: document.id,
+                    user: $user.id
             }}).then(result => {    
                 console.log(result);        
-                session = result.data;
+                session = result.data.createSession;
             });
         }
+    }    
 
+    function pagehide(_) {
         if (session != null)
         {
-            console.log("has session");
-            /*console.log("create session " + session  + " " + $user);
-            
-            
-            /*subscribe(SESSIONCHANGED_SUBSCRIPTION,
-            {            
-                variables: {
-                    documentId: session?.documentId}
-            })
-            .subscribe(
-                result => {
-                    if (result.data)
-                    {
-                        session = result.data;
-                    }
-                }
-            );*/
+            // Calling any thing else than sendBeacon from pagehide/unload is immpossible. Need to post to Restful endpoint here
+            navigator.sendBeacon(`http://${sessionsUrl}/api/deleteSession?document=${session.document}&user=${$user.id}`);        
         }
-    }
-   
-    onDestroy(() => {
-        if (session != null)
-        {
-            deleteSession({
-                variables: {
-                    documentId: session?.documentId,
-                    user: $user
-            }});            
-        }
-    });
-    
-    //Also delete session when window / frame is closed    
+    }  
 
 </script>
-    <div class="session {session?.users.length > 1 ? 'online':''}"> 
-        {#if session != null && session.length > 1}
-            <ul>            
-                {#each session?.users as user}
-                    <li>{user}</li>
-                {/each}
-            </ul>
-        {/if}
-        <slot/>
-    </div>
+
+<svelte:window on:pagehide={pagehide} />
+
+<div class="session {session?.users.length > 1 ? 'active' : ''}">
+    <div class="status">Session for document <b>{document.title}</b></div>
+    <slot/>
+</div>
+
 <style>
-    div {
+    .status {
+        height:25px;
+    }
+
+    .session {
         overflow: hidden;
-        top: 2px;        
-        border: none;
-        height: calc(100% - 65px);        
+        height: calc(100% - 25px);
+        width: calc(100% - 5px);
+        display: table;    
+        padding: 3px;                
     }
 
-    .online {
-        border: limegreen 2px solid;    
-    }
-
-    p {    
-        display: block;
-        margin: 0;
-        padding-left: 5px;        
-        font-size: 12px;        
-    }
-
-    .online p {
-        display: block;
-        background: limegreen;       
+    .active {
+        background: limegreen;        
     }
 </style>
