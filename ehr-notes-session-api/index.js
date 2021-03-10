@@ -32,11 +32,11 @@ const httpServer = http.createServer(app);
 server.applyMiddleware({app});
 server.installSubscriptionHandlers(httpServer);
 
-app.use("/api/deleteSession", (req, res) => {
+app.post("/api/deleteSession", (req, res) => {
   if (req.query.document && req.query.user)
   {
     var removed = sessionManager.removeSession(req.query.document, req.query.user);
-    if (removed != null)
+    if (removed.session != null)
     {
       res.status(200).send("OK");
     }
