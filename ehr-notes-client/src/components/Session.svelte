@@ -2,11 +2,9 @@
     import { mutation, subscribe } from "svelte-apollo";
     import gql from 'graphql-tag';
     import {user} from "../SmartOnFhirStore";
-    import {sessionsUrl} from "../SessionsStore";
-import { select_option } from "svelte/internal";
+    import {session, sessionsUrl, sessionsProtocol} from "../SessionsStore";
     
     export let document;
-    let session = null;
 
     const CREATESESSION_MUTATION = gql`    
         mutation($document: String!, $user: String!){
@@ -24,25 +22,63 @@ import { select_option } from "svelte/internal";
         }`;
     const deleteSession = mutation(DELETESESSION_MUTATION);
 
+    const SESSIONCHANGED_SUBSCRIPTION = gql`
+        subscription($document:String!) {
+            sessionChanged(document:$document) {
+                id 
+                document
+                users
+            }
+        }`;       
+
     $: {
-        if ($user && document && session == null)
+        if ($user && document && $session == null)
         {            
             createSession({
                 variables: {                
                     document: document.id,
                     user: $user.id
             }}).then(result => {    
-                console.log(result);        
-                session = result.data.createSession;
+                session.set(result.data.createSession);    
             });
         }
-    }    
+
+        if ($session != null) {
+            console.log("Subscribing for changes to session for " + $session.document);
+            subscribe(SESSIONCHANGED_SUBSCRIPTION,
+            {            
+                variables: {
+                    document: $session.document },
+            })
+            .subscribe(
+                result => {
+                    if (result.data)
+                    {
+                        const newSession = {
+                            id: result.data.sessionChanged.id,
+                            document: result.data.sessionChanged.document,
+                            users: result.data.sessionChanged.users
+                        };
+
+                        session.set(newSession);                        
+                    }
+                }
+            );
+        }
+    }        
 
     function pagehide(_) {
-        if (session != null)
+        if ($session != null)
         {
-            // Calling any thing else than sendBeacon from pagehide/unload is immpossible. Need to post to Restful endpoint here
-            navigator.sendBeacon(`http://${sessionsUrl}/api/deleteSession?document=${session.document}&user=${$user.id}`);        
+            const url = `${sessionsProtocol}://${sessionsUrl}/api/deleteSession?document=${$session.document}&user=${$user.id}`;            
+            console.log("Delete url " + url);
+            
+            fetch(url, {
+                method: "post",
+                mode: "cors",                
+                body: mutation,
+                keepalive: true
+            });
         }
     }  
 
@@ -50,11 +86,14 @@ import { select_option } from "svelte/internal";
 
 <svelte:window on:pagehide={pagehide} />
 
-<div class="session {session?.users.length > 1 ? 'active' : ''}">
-    <div class="status">Session for document <b>{document.title}</b></div>
+{#if $session}
+<div class="session {$session?.users.length > 1 ? 'active' : ''}">
+    <div class="status">Session for document <b>{$session.document}</b></div>
     <slot/>
 </div>
-
+{:else}
+    <slot/>
+{/if}
 <style>
     .status {
         height:25px;

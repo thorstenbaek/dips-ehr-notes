@@ -20,7 +20,7 @@ const typeDefs = `
   
   type Mutation {
       createSession(document: String!, user: String!): Session
-      deleteSession(document: String!, user: String!): String
+      deleteSession(document: String!, user: String!): String      
   }
 
   type Subscription {

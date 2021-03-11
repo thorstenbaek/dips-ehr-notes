@@ -4,7 +4,6 @@ import { v4 } from "uuid";
 var _sessions = [];
 
 class SessionManager {                
-
     all() {
         return _sessions;
     }
@@ -46,6 +45,7 @@ class SessionManager {
             {
                 _sessions = _sessions.filter(s => s.id != session.id);
                 deleted = true;
+
             }
             return { session, deleted };
         }
@@ -53,6 +53,13 @@ class SessionManager {
         {
             return { error: true };
         }        
+    }
+
+    addDelta(document, delta) {
+        var session = this.getByDocument(document);
+        if (session) {
+            session.addDelta(delta);
+        }
     }
 }
 

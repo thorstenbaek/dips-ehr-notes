@@ -14,7 +14,8 @@
     let editor = new Editor();
     editor.on("change", delta => {        
         if (delta != null && delta.change != null) {
-            console.log(delta?.change);
+            
+            console.log(delta);
         }
     })
 

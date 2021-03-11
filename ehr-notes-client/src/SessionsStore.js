@@ -4,16 +4,23 @@ import { HttpLink } from 'apollo-link-http';
 import { split } from 'apollo-link';
 import { getMainDefinition } from 'apollo-utilities';
 import { setClient } from "svelte-apollo";
+import { writable } from "svelte/store";
 
+//export let sessionsProtocol = "https";
+//export let sessionWebSocketProtocol = "wss";
 //export let sessionsUrl = "local.dips-ehr-notes-session-api.localhost";
+export let sessionsProtocol = "http";
+export let sessionWebSocketProtocol = "ws";
 export let sessionsUrl = "localhost:4000";
+
+export let session = writable(null);
 
 const init = () => {
     const httpLink = new HttpLink({
-        uri: `http://${sessionsUrl}/graphql`
+        uri: `${sessionsProtocol}://${sessionsUrl}/graphql`
         });
         const wsLink = new WebSocketLink({
-            uri: `ws://${sessionsUrl}/subscriptions`,		
+            uri: `${sessionWebSocketProtocol}://${sessionsUrl}/subscriptions`,		
         options: {
             reconnect: true
         }

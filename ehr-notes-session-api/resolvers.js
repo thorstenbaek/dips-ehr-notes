@@ -1,6 +1,7 @@
 import { PubSub, withFilter } from "apollo-server-express";
 
 const pubsub = new PubSub();
+pubsub.ee.setMaxListeners(30); 
 
 var resolvers = {
     Query: {
@@ -50,7 +51,7 @@ var resolvers = {
             }
 
             return result.session.id;
-        }
+        },        
     }, 
 
     Subscription: {        
