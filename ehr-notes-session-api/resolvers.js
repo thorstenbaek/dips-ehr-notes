@@ -53,16 +53,15 @@ var resolvers = {
             return result.session.id;
         },              
         changeDocument: (_, args, {dataSources}) => {
-          //var session = dataSources.sessionManager.getByDocument(args.document);
-          
-          //if  (session && session.users.length > 1) {  
+          var session = dataSources.sessionManager.getByDocument(args.change.document);
+          if  (session && session.users.length > 1) {  
             var change = args.change;
             pubsub.publish(["DOCUMENT_CHANGED"], {                
                 documentChanged: change
             });
             console.log(change);
             return change;
-          //}
+          }
         }
     }, 
 
