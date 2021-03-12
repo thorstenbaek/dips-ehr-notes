@@ -12,21 +12,26 @@ const typeDefs = `
       users: [String]
   }
   
-  input DeltaInput {
+  input ChangeInput {
     content: String
-    start: Int
-    stop: Int
+  }
+
+  type Change {
+    content: String
   }
   
   type Mutation {
       createSession(document: String!, user: String!): Session
-      deleteSession(document: String!, user: String!): String      
+      deleteSession(document: String!, user: String!): String     
+      changeDocument(document: String!, change: String!): Change 
   }
 
   type Subscription {
     sessionCreated(document: String!): Session
     sessionChanged(document: String!): Session
     sessionDeleted(document: String!): Session
+    documentChanged(document: String!): Change    
   }`;
 
 export default typeDefs;
+

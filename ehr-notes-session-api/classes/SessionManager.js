@@ -53,14 +53,7 @@ class SessionManager {
         {
             return { error: true };
         }        
-    }
-
-    addDelta(document, delta) {
-        var session = this.getByDocument(document);
-        if (session) {
-            session.addDelta(delta);
-        }
-    }
+    }    
 }
 
 export default SessionManager;

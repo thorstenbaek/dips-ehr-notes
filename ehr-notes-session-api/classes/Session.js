@@ -3,15 +3,11 @@ export class Session {
         this.id = id,
         this.document = document;        
         this.users = [user];
-        this.deltas = [];
+        this.changes = [];
     }
 
     addUser(user) {
         this.users.push(user);
-    }
-
-    addDelta(delta) {
-        this.deltas.push(delta);
     }
 
     removeUser(user) {

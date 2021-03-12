@@ -51,7 +51,16 @@ var resolvers = {
             }
 
             return result.session.id;
-        },        
+        },              
+        changeDocument: (_, args, {dataSources}) => {
+          var session = dataSources.sessionManager.getByDocument(args.document);
+          var document = args.document;
+          if  (session && session.users.length > 1) {          
+            pubsub.publish(["DOCUMENT_CHANGED"], {                
+                documentChanged: {document, session}
+            })
+          }
+        }
     }, 
 
     Subscription: {        
@@ -74,6 +83,13 @@ var resolvers = {
           () => pubsub.asyncIterator(["SESSION_DELETED"]),
           (payload, variables) => {
             return payload.sessionDeleted.document === variables.document;
+          })
+      },
+      documentChanged: {
+        subscribe: withFilter(
+          () => pubsub.asyncIterator(["DOCUMENT_CHANGED"]),
+          (payload, variables) => {
+            return payload.documentChanged.document === variables.document;
           })
       }
   }

@@ -1,5 +1,5 @@
 <script>
-    import { Editor } from "typewriter-editor";
+    import { Delta, Editor } from "typewriter-editor";
     import marked from 'marked'
     //Consider changing to this package supporting two way md-conversion: https://github.com/showdownjs/showdown
     //import Root from "typewriter-editor/lib/Root.svelte";    
@@ -10,12 +10,15 @@
 
     export let document = null;
     let sidebar = false;            
+    let selection = [];
 
     let editor = new Editor();
+    
     editor.on("change", delta => {        
         if (delta != null && delta.change != null) {
             
-            console.log(delta);
+            console.log(delta.change);
+            selection = delta.change.selection;
         }
     })
 
@@ -34,6 +37,19 @@
     {
         sidebar = !sidebar;
     }   
+
+    function addDelta()
+    {
+        if (selection.length > 0)
+        {
+            var delta = new Delta([
+                { retain: selection[0] },
+                { insert: '\nWhat do you get when you have a cat that eats lemons?\nA sour puss\n' } ]);
+            
+            editor.update(delta);
+            log(delta);
+        }
+    }
     
 </script>
     {#if document}
@@ -45,16 +61,24 @@
                     <div class="container">
                         <div use:asRoot={editor} class="editor" spellcheck="false" />
                         <Sidebar active={sidebar} mode="narrow">
-                            <p>Here comes the NLP results</p>
+                            <button on:click={addDelta}>Add Delta</button>
                         </Sidebar>
                     </div>
-                </div>                     
+                </div> 
+                <div class="statusBar">
+                    {selection}
+                </div>                    
         </Session>
     {/if}
-<style>        
+<style> 
+    .statusBar {
+        height: 25px;
+        background: #ededed;
+    }
+
     .scroll {    
         overflow: auto;        
-        height: calc(100% - 73px);
+        height: calc(100% - 98px);
     }
 
     .container {    
