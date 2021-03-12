@@ -13,17 +13,21 @@ const typeDefs = `
   }
   
   input ChangeInput {
-    content: String
+    document: String
+    instance: String
+    content: String    
   }
 
   type Change {
+    document: String
     content: String
+    instance: String
   }
   
   type Mutation {
       createSession(document: String!, user: String!): Session
       deleteSession(document: String!, user: String!): String     
-      changeDocument(document: String!, change: String!): Change 
+      changeDocument(change: ChangeInput!): Change 
   }
 
   type Subscription {

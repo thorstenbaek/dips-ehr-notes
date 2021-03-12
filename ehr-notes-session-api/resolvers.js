@@ -11,7 +11,7 @@ var resolvers = {
         
         sessions: (_, __, {dataSources}) => {
             return dataSources.sessionManager.all();
-        },    
+        },
     },
 
     Mutation: {
@@ -53,13 +53,16 @@ var resolvers = {
             return result.session.id;
         },              
         changeDocument: (_, args, {dataSources}) => {
-          var session = dataSources.sessionManager.getByDocument(args.document);
-          var document = args.document;
-          if  (session && session.users.length > 1) {          
+          //var session = dataSources.sessionManager.getByDocument(args.document);
+          
+          //if  (session && session.users.length > 1) {  
+            var change = args.change;
             pubsub.publish(["DOCUMENT_CHANGED"], {                
-                documentChanged: {document, session}
-            })
-          }
+                documentChanged: change
+            });
+            console.log(change);
+            return change;
+          //}
         }
     }, 
 
@@ -88,7 +91,7 @@ var resolvers = {
       documentChanged: {
         subscribe: withFilter(
           () => pubsub.asyncIterator(["DOCUMENT_CHANGED"]),
-          (payload, variables) => {
+          (payload, variables) => {    
             return payload.documentChanged.document === variables.document;
           })
       }

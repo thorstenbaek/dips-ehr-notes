@@ -1,5 +1,6 @@
 <script>
     import { Delta, Editor } from "typewriter-editor";
+    import { v4 } from "uuid";
     import marked from 'marked'
     //Consider changing to this package supporting two way md-conversion: https://github.com/showdownjs/showdown
     //import Root from "typewriter-editor/lib/Root.svelte";    
@@ -7,30 +8,45 @@
     import Toolbar from "./Toolbar.svelte";            
     import Sidebar from "./Sidebar.svelte";
     import Session from "./Session.svelte";    
+    import {changeDocument, subscribeForDocumentChanges} from "../SessionsStore";
 
     export let document = null;
+    
+    let instance = v4();
     let sidebar = false;            
     let selection = [];
+    let isUpdating = false;
 
     let editor = new Editor();
-    
+
     editor.on("change", delta => {        
-        if (delta != null && delta.change != null) {
-            
-            console.log(delta.change);
-            selection = delta.change.selection;
+        if (!isUpdating && delta != null && delta.change != null) {                        
+            changeDocument(document.id, instance, JSON.stringify(delta.change.selection));
         }
     })
+
+    function onChanged(data){
+        isUpdating = true;
+        
+        if (data.instance != instance)
+        {            
+            var selection = JSON.parse(data.content);
+            editor.select(selection);
+        }        
+        
+        isUpdating = false;
+    }
 
     $:{        
         if (document != null)
         {                    
             editor.setHTML(marked(document.markdown));                            
+            subscribeForDocumentChanges(onChanged, instance, document);
         }
         else
         {
             editor.setText(null);
-        }
+        }        
     }
 
     function toggleSidebar()
@@ -66,7 +82,7 @@
                     </div>
                 </div> 
                 <div class="statusBar">
-                    {selection}
+                    {selection} 
                 </div>                    
         </Session>
     {/if}
