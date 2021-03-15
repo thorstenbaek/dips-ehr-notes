@@ -19,9 +19,14 @@
 
     let editor = new Editor();
 
-    editor.on("change", delta => {        
-        if (!isUpdating && delta != null && delta.change != null) {                        
-            changeDocument(document.id, instance, JSON.stringify(delta.change.selection));
+    editor.on("change", event => {            
+        if (!isUpdating && event != null && event.change != null) {                        
+            const change = {
+                ops: event.change.delta.ops,
+                selection: event.change.selection
+            }
+
+            changeDocument(document.id, instance, JSON.stringify(change));
         }
     })
 
@@ -30,8 +35,14 @@
         
         if (data.instance != instance)
         {            
-            var selection = JSON.parse(data.content);
-            editor.select(selection);
+            var change = JSON.parse(data.content);
+            if (change.ops.length > 0)
+            {
+                var delta = new Delta(change.ops);
+                editor.update(delta);                        
+            }
+            
+            editor.select(change.selection);
         }        
         
         isUpdating = false;
