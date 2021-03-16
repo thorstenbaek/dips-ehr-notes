@@ -1,4 +1,5 @@
 import assert from "assert";
+import { assertType } from "graphql";
 import SessionManager from "../classes/SessionManager.js";
 
 
@@ -69,11 +70,18 @@ describe("SessionManager tests", () => {
             var result = sessionManager.removeSession("document2", "user3");
             assert.strictEqual(result.deleted, true);
         });
-        it("remove user from session with equal users - removes one user", () => {
-            
+        it("remove user from session with equal users - removes one user", () => {            
             var result = sessionManager.removeSession("document3", "user1");
             assert.strictEqual(result.deleted, false);
             assert.strictEqual(result.session.users.length, 2);
         });
+    });
+
+    describe("flush", () => {
+        it("returns all sessions and empties sessions list", () => {
+            const sessions = sessionManager.flush();
+            assert.strictEqual(sessions.length, 3);
+            assert.strictEqual(sessionManager.isEmpty(), true);
+        })
     });
 });

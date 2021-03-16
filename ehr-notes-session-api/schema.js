@@ -26,8 +26,9 @@ const typeDefs = `
   
   type Mutation {
       createSession(document: String!, user: String!): Session
-      deleteSession(document: String!, user: String!): String     
-      changeDocument(change: ChangeInput!): Change 
+      deleteSession(document: String!, user: String!): String           
+      flushSessions: String
+      changeDocument(change: ChangeInput!): Change       
   }
 
   type Subscription {

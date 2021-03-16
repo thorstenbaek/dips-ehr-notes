@@ -51,7 +51,16 @@ var resolvers = {
             }
 
             return result.session.id;
-        },              
+        },
+        flushSessions: (_, __, {dataSources}) => {
+          var sessions = dataSources.sessionManager.flush();  
+          sessions.map(s => {
+            console.log(s)
+            pubsub.publish(["SESSION_CHANGED"], {
+              sessionDeleted: s                           
+            });
+          });
+        },             
         changeDocument: (_, args, {dataSources}) => {
           var session = dataSources.sessionManager.getByDocument(args.change.document);
           if  (session && session.users.length > 1) {  

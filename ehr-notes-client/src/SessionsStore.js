@@ -8,16 +8,12 @@ import { setClient, mutation, subscribe } from "svelte-apollo";
 import gql from 'graphql-tag';
 import { get, writable } from "svelte/store";
 import { user } from "./SmartOnFhirStore";
-
-//export let sessionsProtocol = "https";
-//export let sessionWebSocketProtocol = "wss";
-//export let sessionsUrl = "local.dips-ehr-notes-session-api.localhost";
-export let sessionsProtocol = "http";
-export let sessionWebSocketProtocol = "ws";
-export let sessionsUrl = "localhost:4000";
+import { settings } from "./stores";
+import UrlBuilder from "./UrlBuilder";
 
 export let session = writable(null);
 
+let urlBuilder;
 let createSessionMutation;
 let sessionChangedSubscription;
 let sessionChangedUnsubscriber;
@@ -28,14 +24,14 @@ let documentChangedUnsubscriber;
 
         
 const init = () => {
-    const httpLink = new HttpLink({
-        uri: `${sessionsProtocol}://${sessionsUrl}/graphql`
-        });
+    urlBuilder = new UrlBuilder(get(settings).SessionsApiUrl);
+    
+    const httpLink = new HttpLink({uri: urlBuilder.getGraphQLUrl()});
         const wsLink = new WebSocketLink({
-            uri: `${sessionWebSocketProtocol}://${sessionsUrl}/subscriptions`,		
-        options: {
-            reconnect: true
-        }
+            uri: urlBuilder.getSubscriptionsUrl(),		
+            options: {
+                reconnect: true
+            }
         });
 
     const link = split(
@@ -90,7 +86,7 @@ async function createSession(document) {
 }
 
 function deleteSession() {    
-    const url = `${sessionsProtocol}://${sessionsUrl}/api/deleteSession?document=${get(session).document}&user=${get(user).id}`;            
+    const url = `${urlBuilder.getBaseUrl()}/api/deleteSession?document=${get(session).document}&user=${get(user).id}`;            
     fetch(url, {
         method: "post",
         mode: "cors",                        
@@ -120,7 +116,7 @@ function subscribeForSessionChanges(document) {
     }});
 
     sessionChangedUnsubscriber = sessionChangedSubscription.subscribe(        
-        result => {            
+        result => {              
             if (result.data)
             {
                 const newSession = {
@@ -130,6 +126,10 @@ function subscribeForSessionChanges(document) {
                 };
 
                 session.set(newSession);                        
+            }
+            else
+            {
+                session.set(null);
             }
         });
 }

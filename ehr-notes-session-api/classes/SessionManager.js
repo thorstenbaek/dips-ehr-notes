@@ -54,6 +54,17 @@ class SessionManager {
             return { error: true };
         }        
     }    
+
+    flush() {
+        const sessions = _sessions;
+        _sessions = [];
+        return sessions;
+    }
+
+    isEmpty() {
+        return _sessions?.length == 0;
+    }
+
 }
 
 export default SessionManager;
