@@ -72,12 +72,24 @@ query
   }
 }
 
-#Subscribe for changed sessions:
+#Subscribe for changes to session with document 17
+
 subscription {
-  session {
-    mutation,    
-    data {
-      id
+    sessionChanged(document:"17") {
+        id 
+        document
+        users
     }
-  }
 }
+
+#with variables:
+
+subscription($document:String!) {
+    sessionChanged(document:$document) {
+        id 
+        document
+        users
+    }
+}
+
+{"document": "17"}

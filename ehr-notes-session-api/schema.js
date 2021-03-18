@@ -3,42 +3,40 @@
 const typeDefs = `
   type Query {    
     sessions: [Session]
-    session(id: ID!): Session    
-    documents: [Document]
+    session(document: String!): Session    
   }
 
-  type Document {
-    id: ID!
-    title: String
-    date: String
-    author: String
-    markdown: String
-    session: Session
-  }
-    
   type Session {
       id: String
-      documentId: ID
+      document: String
       users: [String]
   }
   
-  input DeltaInput {
+  input ChangeInput {
+    document: String
+    instance: String
+    content: String    
+  }
+
+  type Change {
+    document: String
     content: String
-    start: Int
-    stop: Int
+    instance: String
   }
   
   type Mutation {
-      createSession(documentId: ID!, user: String!): Session
-      deleteSession(documentId: ID!, user: String!): ID
+      createSession(document: String!, user: String!): Session
+      deleteSession(document: String!, user: String!): String           
+      flushSessions: String
+      changeDocument(change: ChangeInput!): Change       
   }
 
   type Subscription {
-    sessionCreated(documentId: ID!): Session,
-    sessionChanged(documentId: ID!): Session,
-    sessionDeleted: ID
-  }
-  
-  `;
+    sessionCreated(document: String!): Session
+    sessionChanged(document: String!): Session
+    sessionDeleted(document: String!): Session
+    documentChanged(document: String!): Change    
+  }`;
 
 export default typeDefs;
+

@@ -1,92 +1,76 @@
-import { PubSub, withFilter } from "apollo-server";
-import {Session} from "./classes/Session.js";
-import {Document} from "./classes/Document.js";
-import { v4 } from "uuid";
-import documents from "./documents.js";
+import { PubSub, withFilter } from "apollo-server-express";
 
-var sessions = []; //sessionData.map(d => new Session(d.documentId));
 const pubsub = new PubSub();
+pubsub.ee.setMaxListeners(30); 
 
 var resolvers = {
     Query: {
-        documents() {
-            return documents.map(document => {
-              var documentSession = sessions.filter(s => s.documentId == document.id);
-              console.log(documentSession.length);
-              
-                return new Document(
-                  document.id,
-                  document.title,
-                  document.date,
-                  document.author,
-                  document.markdown,
-                  documentSession[0]
-                )  
-            })            
-        },
-
-        session: (_, args) => {
-            var document = sessions.filter(d => d.id == args.id);
-            if (document.length == 0) {
-                throw new Error(`no document exists with id ${args.id}`);
-            }
-            return document[0];
+        session: (_, args, {dataSources}) => {
+            return dataSources.sessionManager.getByDocument(args.document);            
           },
         
-        sessions() {
-            return sessions;
-        },    
+        sessions: (_, __, {dataSources}) => {
+            return dataSources.sessionManager.all();
+        },
     },
 
     Mutation: {
-        createSession: (_, args) => {               
-            var byDocument = sessions.filter(s => s.documentId == args.documentId);
-            if (byDocument.length == 0) {
-              var session = new Session(
-                v4(),
-                args.documentId, 
-                args.user);
-
-              sessions.push(session);
-                          
+        createSession: (_, args, {dataSources}) => {               
+            const result = dataSources.sessionManager.addSession(args.document, args.user);    
+        
+            if (result.created)
+            {
               pubsub.publish(["SESSION_CREATED"], {
-                sessionCreated: session
-              }); 
-
-              return session;
+                sessionCreated: result.session}); 
             }
-            else {
-              byDocument[0].users = [...byDocument[0].users, args.user];
+            else {            
               pubsub.publish(["SESSION_CHANGED"], {
-                sessionChanged: byDocument[0]                                
-              });     
+                sessionChanged: result.session});     
+            }
+          
+            return result.session;                        
+        },                  
+        deleteSession: (_, args, {dataSources}) => {          
+            const result = dataSources.sessionManager.removeSession(args.document, args.user);    
 
-              return byDocument[0];
+            if (result.error)
+            {
+              return null;
             }
             
-        },                  
-        deleteSession: (_, args) => {
-            var byDocument = sessions.filter(s => s.documentId == args.documentId);
-            if (byDocument.length == 0) {
-              return;
-            }
-
-            if (byDocument[0].users.length > 1)
-            {
-              byDocument[0].users = byDocument[0].users.filter(u => u != args.user);
-              pubsub.publish(["SESSION_CHANGED"], {
-                sessionChanged: byDocument[0]                                
+            if (result.deleted) {  
+              pubsub.publish(["SESSION_DELETED"], {
+                sessionDeleted: result.session                           
               });
-              return;
+              
+            }
+            else {
+              pubsub.publish(["SESSION_CHANGED"], {
+                sessionChanged: result.session
+              });
             }
 
-            sessions = sessions.filter(s => s.documentId != args.documentId);
-
-            pubsub.publish(["SESSION_DELETED"], {
-              sessionDeleted: args.documentId                                
+            return result.session.id;
+        },
+        flushSessions: (_, __, {dataSources}) => {
+          var sessions = dataSources.sessionManager.flush();  
+          sessions.map(s => {
+            console.log(s)
+            pubsub.publish(["SESSION_CHANGED"], {
+              sessionDeleted: s                           
             });
-
-            return args.documentId;
+          });
+        },             
+        changeDocument: (_, args, {dataSources}) => {
+          var session = dataSources.sessionManager.getByDocument(args.change.document);
+          if  (session && session.users.length > 1) {  
+            var change = args.change;
+            pubsub.publish(["DOCUMENT_CHANGED"], {                
+                documentChanged: change
+            });
+            console.log(change);
+            return change;
+          }
         }
     }, 
 
@@ -95,19 +79,30 @@ var resolvers = {
         subscribe: withFilter(
           () => pubsub.asyncIterator(["SESSION_CREATED"]),
           (payload, variables) => {            
-            return payload.sessionCreated.documentId === variables.documentId;
+            return payload.sessionCreated.document === variables.document;
           })          
       },
       sessionChanged: {
         subscribe: withFilter(
           () => pubsub.asyncIterator(["SESSION_CHANGED"]),
           (payload, variables) => {            
-            return payload.sessionChanged.documentId === variables.documentId;
+            return payload.sessionChanged.document === variables.document;
           })
       },
       sessionDeleted: {
-        subscribe: () => pubsub.asyncIterator(["SESSION_DELETED"])
-    }
+        subscribe: withFilter(
+          () => pubsub.asyncIterator(["SESSION_DELETED"]),
+          (payload, variables) => {
+            return payload.sessionDeleted.document === variables.document;
+          })
+      },
+      documentChanged: {
+        subscribe: withFilter(
+          () => pubsub.asyncIterator(["DOCUMENT_CHANGED"]),
+          (payload, variables) => {    
+            return payload.documentChanged.document === variables.document;
+          })
+      }
   }
 }
 
