@@ -23,7 +23,7 @@
         if (!isUpdating && event != null && event.change != null) {                        
             const change = {
                 ops: event.change.delta.ops,
-                selection: event.change.selection
+                //selection: event.change.selection
             }
 
             changeDocument(document.id, instance, JSON.stringify(change));
@@ -42,7 +42,7 @@
                 editor.update(delta);                        
             }
             
-            editor.select(change.selection);
+            //editor.select(change.selection);
         }        
         
         isUpdating = false;
