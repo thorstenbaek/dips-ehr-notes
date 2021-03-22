@@ -61,7 +61,12 @@
         <button
           class="toolbar-button material-icons"
           class:active={sidebar}
-          on:click={() => dispatch("toggleSidebar")}>view_sidebar</button>
+          on:click={() => dispatch("toggleSidebar")}>view_sidebar
+        </button>
+        <button
+          class="toolbar-button material-icons"
+          on:click={() => dispatch("createRange")}>S
+        </button>
       </div>
 </Toolbar>
 

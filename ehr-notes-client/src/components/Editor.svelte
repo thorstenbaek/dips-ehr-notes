@@ -8,16 +8,19 @@
     import Toolbar from "./Toolbar.svelte";            
     import Sidebar from "./Sidebar.svelte";
     import Session from "./Session.svelte";    
+    import Overlay from "./Overlay.svelte";
     import {changeDocument, subscribeForDocumentChanges} from "../SessionsStore";
 
     export let document = null;
     
     let instance = v4();
-    let sidebar = false;            
+    let sidebar = true;            
     let selection = [];
     let isUpdating = false;
 
-    let editor = new Editor();
+
+    let editor = new Editor();        
+    let rects;
 
     editor.on("change", event => {            
         if (!isUpdating && event != null && event.change != null) {                        
@@ -65,16 +68,19 @@
         sidebar = !sidebar;
     }   
 
-    function addDelta()
+    function drawRect()
     {
-        if (selection.length > 0)
+        var range = editor.doc.selection;
+        if (range)
         {
-            var delta = new Delta([
-                { retain: selection[0] },
-                { insert: '\nWhat do you get when you have a cat that eats lemons?\nA sour puss\n' } ]);
-            
-            editor.update(delta);
-            log(delta);
+            var tempRects = []; 
+            var rectsList = editor.getAllBounds(range);                
+            for(var i = 0; i < rectsList.length; i++)
+            {
+                tempRects.push(rectsList[i]);
+            }
+
+            rects = [...tempRects];
         }
     }
     
@@ -83,12 +89,13 @@
         <Session document={document}>
             <Toolbar editor={editor} 
                     sidebar={sidebar} 
-                on:toggleSidebar={toggleSidebar} />
+                on:toggleSidebar={toggleSidebar} 
+                on:createRange={drawRect}/>
                 <div class="scroll">
                     <div class="container">
                         <div use:asRoot={editor} class="editor" spellcheck="false" />
+                        <Overlay rects={rects} />
                         <Sidebar active={sidebar} mode="narrow">
-                            <button on:click={addDelta}>Add Delta</button>
                         </Sidebar>
                     </div>
                 </div> 
