@@ -1,5 +1,6 @@
 <script>
     import { Delta, Editor } from "typewriter-editor";
+    import { Canvas } from "svelte-canvas";
     import { v4 } from "uuid";
     import marked from 'marked'
     //Consider changing to this package supporting two way md-conversion: https://github.com/showdownjs/showdown
@@ -9,7 +10,9 @@
     import Sidebar from "./Sidebar.svelte";
     import Session from "./Session.svelte";    
     import Overlay from "./Overlay.svelte";
+    import Avatars from "./Avatars.svelte";
     import {changeDocument, subscribeForDocumentChanges} from "../SessionsStore";
+    import {user} from "../SmartOnFhirStore";
 
     export let document = null;
     
@@ -17,16 +20,16 @@
     let sidebar = true;            
     let selection = [];
     let isUpdating = false;
-
-
+    let height, width;
     let editor = new Editor();        
     let rects;
+    let avatars = {};
 
     editor.on("change", event => {            
         if (!isUpdating && event != null && event.change != null) {                        
             const change = {
                 ops: event.change.delta.ops,
-                //selection: event.change.selection
+                selection: event.change.selection
             }
 
             changeDocument(document.id, instance, JSON.stringify(change));
@@ -45,7 +48,11 @@
                 editor.update(delta);                        
             }
             
-            //editor.select(change.selection);
+            if (change.selection) {
+                const rect = editor.getBounds(change.selection);
+                avatars[data.instance] = rect;
+            }
+            
         }        
         
         isUpdating = false;
@@ -85,6 +92,7 @@
     }
     
 </script>
+    <svelte:window bind:innerHeight={height} bind:innerWidth={width}/>
     {#if document}
         <Session document={document}>
             <Toolbar editor={editor} 
@@ -94,7 +102,12 @@
                 <div class="scroll">
                     <div class="container">
                         <div use:asRoot={editor} class="editor" spellcheck="false" />
-                        <Overlay rects={rects} />
+                        <div class="canvas">
+                            <Canvas width={width} height={height}>
+                                <Avatars avatars={avatars} /> 
+                                <Overlay rects={rects} />
+                            </Canvas>                        
+                        </div>
                         <Sidebar active={sidebar} mode="narrow">
                         </Sidebar>
                     </div>
@@ -135,5 +148,14 @@
   
     .editor:focus {
         border: none;
-    }          
+    }   
+    
+    .canvas {
+        position: absolute;
+        left: 0px;
+        top: 0px;                
+        color: rgba(125, 0, 0, 0.25);
+        background: transparent;        
+        pointer-events: none;
+    } 
 </style>
