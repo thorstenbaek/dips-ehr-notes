@@ -12,7 +12,6 @@
     import Overlay from "./Overlay.svelte";
     import Avatars from "./Avatars.svelte";
     import {changeDocument, subscribeForDocumentChanges} from "../SessionsStore";
-    import {user} from "../SmartOnFhirStore";
 
     export let document = null;
     
@@ -36,23 +35,37 @@
         }
     })
 
+    function updateSelection() {
+        const change = {
+            selection: editor.doc.selection
+        };
+        changeDocument(document.id, instance, JSON.stringify(change));
+    }
+
+    function onSessionClosed() {
+        // reset selection
+        const change = {
+            selection: [0, 0]
+        };
+        changeDocument(document.id, instance, JSON.stringify(change));
+    }
+
     function onChanged(data){
         isUpdating = true;
         
         if (data.instance != instance)
         {            
             var change = JSON.parse(data.content);
-            if (change.ops.length > 0)
+            if (change.ops?.length > 0)
             {
                 var delta = new Delta(change.ops);
                 editor.update(delta);                        
+                updateSelection();
             }
-            
-            if (change.selection) {
-                const rect = editor.getBounds(change.selection);
-                avatars[data.instance] = rect;
+
+            if (change.selection) {        
+                avatars[data.instance] = change.selection;
             }
-            
         }        
         
         isUpdating = false;
@@ -94,7 +107,7 @@
 </script>
     <svelte:window bind:innerHeight={height} bind:innerWidth={width}/>
     {#if document}
-        <Session document={document}>
+        <Session document={document} on:onSessionClosed={onSessionClosed}>
             <Toolbar editor={editor} 
                     sidebar={sidebar} 
                 on:toggleSidebar={toggleSidebar} 
@@ -104,8 +117,8 @@
                         <div use:asRoot={editor} class="editor" spellcheck="false" />
                         <div class="canvas">
                             <Canvas width={width} height={height}>
-                                <Avatars avatars={avatars} /> 
-                                <Overlay rects={rects} />
+                                <Avatars {editor} {avatars} /> 
+                                <Overlay {rects} />
                             </Canvas>                        
                         </div>
                         <Sidebar active={sidebar} mode="narrow">
