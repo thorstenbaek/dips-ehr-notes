@@ -1,6 +1,9 @@
 <script>
+    import { createEventDispatcher } from 'svelte';
     import {user} from "../SmartOnFhirStore";
     import {session, createSession, deleteSession, subscribeForSessionChanges} from "../SessionsStore";
+    
+    const dispatch = createEventDispatcher();
     
     export let document;
 
@@ -14,6 +17,7 @@
     function pagehide(_) {
         if ($session != null)
         {
+            dispatch("onSessionClosed");
             deleteSession();            
         }
     }  

@@ -1,5 +1,6 @@
 <script>
     import { Delta, Editor } from "typewriter-editor";
+    import { Canvas } from "svelte-canvas";
     import { v4 } from "uuid";
     import marked from 'marked'
     //Consider changing to this package supporting two way md-conversion: https://github.com/showdownjs/showdown
@@ -8,27 +9,46 @@
     import Toolbar from "./Toolbar.svelte";            
     import Sidebar from "./Sidebar.svelte";
     import Session from "./Session.svelte";    
+    import Overlay from "./Overlay.svelte";
+    import Avatars from "./Avatars.svelte";
     import {changeDocument, subscribeForDocumentChanges} from "../SessionsStore";
 
     export let document = null;
     
     let instance = v4();
-    let sidebar = false;            
+    let sidebar = true;            
     let selection = [];
     let isUpdating = false;
-
-    let editor = new Editor();
+    let height, width;
+    let editor = new Editor();        
+    let rects;
+    let avatars = {};
 
     editor.on("change", event => {            
         if (!isUpdating && event != null && event.change != null) {                        
             const change = {
                 ops: event.change.delta.ops,
-                //selection: event.change.selection
+                selection: event.change.selection
             }
 
             changeDocument(document.id, instance, JSON.stringify(change));
         }
     })
+
+    function updateSelection() {
+        const change = {
+            selection: editor.doc.selection
+        };
+        changeDocument(document.id, instance, JSON.stringify(change));
+    }
+
+    function onSessionClosed() {
+        // reset selection
+        const change = {
+            selection: [0, 0]
+        };
+        changeDocument(document.id, instance, JSON.stringify(change));
+    }
 
     function onChanged(data){
         isUpdating = true;
@@ -36,13 +56,16 @@
         if (data.instance != instance)
         {            
             var change = JSON.parse(data.content);
-            if (change.ops.length > 0)
+            if (change.ops?.length > 0)
             {
                 var delta = new Delta(change.ops);
                 editor.update(delta);                        
+                updateSelection();
             }
-            
-            //editor.select(change.selection);
+
+            if (change.selection) {        
+                avatars[data.instance] = change.selection;
+            }
         }        
         
         isUpdating = false;
@@ -65,30 +88,40 @@
         sidebar = !sidebar;
     }   
 
-    function addDelta()
+    function drawRect()
     {
-        if (selection.length > 0)
+        var range = editor.doc.selection;
+        if (range)
         {
-            var delta = new Delta([
-                { retain: selection[0] },
-                { insert: '\nWhat do you get when you have a cat that eats lemons?\nA sour puss\n' } ]);
-            
-            editor.update(delta);
-            log(delta);
+            var tempRects = []; 
+            var rectsList = editor.getAllBounds(range);                
+            for(var i = 0; i < rectsList.length; i++)
+            {
+                tempRects.push(rectsList[i]);
+            }
+
+            rects = [...tempRects];
         }
     }
     
 </script>
+    <svelte:window bind:innerHeight={height} bind:innerWidth={width}/>
     {#if document}
-        <Session document={document}>
+        <Session document={document} on:onSessionClosed={onSessionClosed}>
             <Toolbar editor={editor} 
                     sidebar={sidebar} 
-                on:toggleSidebar={toggleSidebar} />
+                on:toggleSidebar={toggleSidebar} 
+                on:createRange={drawRect}/>
                 <div class="scroll">
                     <div class="container">
                         <div use:asRoot={editor} class="editor" spellcheck="false" />
+                        <div class="canvas">
+                            <Canvas width={width} height={height}>
+                                <Avatars {editor} {avatars} /> 
+                                <Overlay {rects} />
+                            </Canvas>                        
+                        </div>
                         <Sidebar active={sidebar} mode="narrow">
-                            <button on:click={addDelta}>Add Delta</button>
                         </Sidebar>
                     </div>
                 </div> 
@@ -128,5 +161,14 @@
   
     .editor:focus {
         border: none;
-    }          
+    }   
+    
+    .canvas {
+        position: absolute;
+        left: 0px;
+        top: 0px;                
+        color: rgba(125, 0, 0, 0.25);
+        background: transparent;        
+        pointer-events: none;
+    } 
 </style>

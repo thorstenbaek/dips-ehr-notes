@@ -51,6 +51,7 @@
     "subscriptions-transport-ws": "^0.9.18",
     "svelte-apollo": "^0.4.0",
     "svelte-asyncable": "^1.3.1",
+    "svelte-canvas": "^0.6.1",
     "svelte-jester": "^1.3.0",
     "svelte-routing": "^1.5.0",
     "typewriter-editor": "^0.6.0"
