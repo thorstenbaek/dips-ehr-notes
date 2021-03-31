@@ -1,8 +1,5 @@
 import assert from "assert";
-import { assertType } from "graphql";
 import SessionManager from "../classes/SessionManager.js";
-
-
 
 describe("SessionManager tests", () => {
 

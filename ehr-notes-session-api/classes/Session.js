@@ -1,9 +1,19 @@
+import Delta from "quill-delta";
+
 export class Session {
-    constructor(id, document, user) {
-        this.id = id,
-        this.document = document;        
+    #otDelta;
+    #deltas;
+
+    constructor(id, delta, user) {    
+        console.log(id, delta, user);    
+        this.id = id;
+        this.#otDelta = new Delta(JSON.parse(delta));                        
+        this.#deltas = [];
         this.users = [user];
-        this.changes = [];
+    }
+
+    delta = () => {
+        return JSON.stringify(this.#otDelta);
     }
 
     addUser(user) {

@@ -1,12 +1,15 @@
 import { PubSub, withFilter } from "apollo-server-express";
+import OTServer from "./classes/OTServer.js";
 
 const pubsub = new PubSub();
 pubsub.ee.setMaxListeners(30); 
 
+const ot = new OTServer();
+
 var resolvers = {
     Query: {
         session: (_, args, {dataSources}) => {
-            return dataSources.sessionManager.getByDocument(args.document);            
+            return dataSources.sessionManager.getById(args.id);            
           },
         
         sessions: (_, __, {dataSources}) => {
@@ -15,8 +18,8 @@ var resolvers = {
     },
 
     Mutation: {
-        createSession: (_, args, {dataSources}) => {               
-            const result = dataSources.sessionManager.addSession(args.document, args.user);    
+        createSession: (_, args, {dataSources}) => {                           
+          const result = dataSources.sessionManager.addSession(args.session);    
         
             if (result.created)
             {
@@ -31,8 +34,7 @@ var resolvers = {
             return result.session;                        
         },                  
         deleteSession: (_, args, {dataSources}) => {          
-            const result = dataSources.sessionManager.removeSession(args.document, args.user);    
-
+            const result = dataSources.sessionManager.removeSession(args.id, args.user);    
             if (result.error)
             {
               return null;
@@ -55,19 +57,20 @@ var resolvers = {
         flushSessions: (_, __, {dataSources}) => {
           var sessions = dataSources.sessionManager.flush();  
           sessions.map(s => {
-            console.log(s)
             pubsub.publish(["SESSION_CHANGED"], {
               sessionDeleted: s                           
             });
           });
         },             
         changeDocument: (_, args, {dataSources}) => {
-          var session = dataSources.sessionManager.getByDocument(args.change.document);
+          var session = dataSources.sessionManager.getById(args.change.document);
           if  (session && session.users.length > 1) {  
+            
             var change = args.change;
             pubsub.publish(["DOCUMENT_CHANGED"], {                
                 documentChanged: change
             });
+            
             console.log(change);
             return change;
           }
@@ -79,21 +82,21 @@ var resolvers = {
         subscribe: withFilter(
           () => pubsub.asyncIterator(["SESSION_CREATED"]),
           (payload, variables) => {            
-            return payload.sessionCreated.document === variables.document;
+            return payload.sessionCreated.id === variables.id;
           })          
       },
       sessionChanged: {
         subscribe: withFilter(
           () => pubsub.asyncIterator(["SESSION_CHANGED"]),
           (payload, variables) => {            
-            return payload.sessionChanged.document === variables.document;
+            return payload.sessionChanged.id === variables.id;
           })
       },
       sessionDeleted: {
         subscribe: withFilter(
           () => pubsub.asyncIterator(["SESSION_DELETED"]),
           (payload, variables) => {
-            return payload.sessionDeleted.document === variables.document;
+            return payload.sessionDeleted.id === variables.id;
           })
       },
       documentChanged: {

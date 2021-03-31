@@ -6,10 +6,11 @@
     const dispatch = createEventDispatcher();
     
     export let document;
+    export let editor;
 
     $: {
         if ($user && document) {            
-            createSession(document);
+            createSession(document.id, JSON.stringify(editor.getDelta()));
             subscribeForSessionChanges(document);    
         }
     }        
@@ -18,9 +19,10 @@
         if ($session != null)
         {
             dispatch("onSessionClosed");
+            console.log("deleteSession");
             deleteSession();            
-        }
-    }  
+        }        
+    }      
 
 </script>
 

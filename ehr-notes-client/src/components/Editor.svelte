@@ -107,7 +107,7 @@
 </script>
     <svelte:window bind:innerHeight={height} bind:innerWidth={width}/>
     {#if document}
-        <Session document={document} on:onSessionClosed={onSessionClosed}>
+        <Session document={document} editor={editor} on:onSessionClosed={onSessionClosed}>
             <Toolbar editor={editor} 
                     sidebar={sidebar} 
                 on:toggleSidebar={toggleSidebar} 
