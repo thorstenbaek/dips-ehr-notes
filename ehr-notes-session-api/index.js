@@ -48,18 +48,18 @@ app.get("/health", (req, res) => {
 });
 
 app.post("/api/deleteSession", (req, res) => {
-  if (req.query.document && req.query.user)
+  if (req.query.id && req.query.user)
   {
 
     const mutation = gql`
-        mutation($document: String!, $user: String!) { 
-            deleteSession(document:$document, user:$user) 
+        mutation($id: String!, $user: String!) { 
+            deleteSession(id:$id, user:$user) 
         }
     `;
 
     const variables = {
-        document: "b3e32146-848c-4d3b-b8a9-c9b3a7861a6a", 
-        user:"f58db7ee-0c33-43e3-8f91-c33bd9255455"
+        id: req.query.id, 
+        user: req.query.user
       }
 
     request(`http://localhost:${port}/graphql`, mutation, variables).then(data => {

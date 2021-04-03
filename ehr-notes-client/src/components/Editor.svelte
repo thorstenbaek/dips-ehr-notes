@@ -11,36 +11,50 @@
     import Session from "./Session.svelte";    
     import Overlay from "./Overlay.svelte";
     import Avatars from "./Avatars.svelte";
-    import {changeDocument, subscribeForDocumentChanges} from "../SessionsStore";
+    import {changeDocument, session, subscribeForDocumentChanges} from "../SessionsStore";
 
     export let document = null;
     
     let instance = v4();
-    let sidebar = true;            
+    let sidebar = false;            
     let selection = [];
     let isUpdating = false;
     let height, width;
     let editor = new Editor();        
     let rects;
     let avatars = {};
+    let version = 0;
 
     editor.on("change", event => {            
         if (!isUpdating && event != null && event.change != null) {                        
-            const change = {
-                ops: event.change.delta.ops,
-                selection: event.change.selection
-            }
+            // const change = {
+            //     delta: event.change.delta,
+            //     selection: event.change.selection
+            // }
 
-            changeDocument(document.id, instance, JSON.stringify(change));
+            changeDocument(document.id, instance, version, JSON.stringify(event.change.delta));
         }
     })
 
-    function updateSelection() {
-        const change = {
-            selection: editor.doc.selection
-        };
-        changeDocument(document.id, instance, JSON.stringify(change));
-    }
+    // function updateSelection() {
+    //     const change = {
+    //         selection: editor.doc.selection
+    //     };
+    //     changeDocument(document.id, instance, JSON.stringify(change));
+    // }
+    session.subscribe(value => {
+        console.log(value);
+        if (value?.version > 0) {
+            isUpdating = true;
+            try {
+                if(value?.document) {
+                    editor.setDelta(new Delta(JSON.parse(value.document)));
+                }
+            } finally {
+                isUpdating = false;
+            }                               
+        }
+    })
 
     function onSessionClosed() {
         // reset selection
@@ -50,20 +64,26 @@
         changeDocument(document.id, instance, JSON.stringify(change));
     }
 
+    function onSessionCreated(document) {
+        
+    }
+
     function onChanged(data){
         isUpdating = true;
-        
+        version++;
+        console.log("version", version);
+
         if (data.instance != instance)
         {            
-            var change = JSON.parse(data.content);
-            if (change.ops?.length > 0)
+            var change = JSON.parse(data.delta);
+            if (change?.ops?.length > 0)
             {
                 var delta = new Delta(change.ops);
                 editor.update(delta);                        
                 updateSelection();
             }
 
-            if (change.selection) {        
+            if (change?.selection) {        
                 avatars[data.instance] = change.selection;
             }
         }        
@@ -75,7 +95,7 @@
         if (document != null)
         {                    
             editor.setHTML(marked(document.markdown));                            
-            subscribeForDocumentChanges(onChanged, instance, document);
+            subscribeForDocumentChanges(onChanged, instance, document.id);
         }
         else
         {
@@ -107,7 +127,7 @@
 </script>
     <svelte:window bind:innerHeight={height} bind:innerWidth={width}/>
     {#if document}
-        <Session document={document} on:onSessionClosed={onSessionClosed}>
+        <Session id={document.id} editor={editor} on:onSessionClosed={onSessionClosed} on:onSessionCreated={onSessionCreated}>
             <Toolbar editor={editor} 
                     sidebar={sidebar} 
                 on:toggleSidebar={toggleSidebar} 

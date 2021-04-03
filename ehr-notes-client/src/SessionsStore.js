@@ -55,11 +55,9 @@ const init = () => {
     setClient(client);
 
     const CREATESESSION_MUTATION = gql`    
-    mutation($document: String!, $user: String!){
-        createSession(document: $document, user: $user) {
-            id
-            document,
-            users
+    mutation($id: String!, $document: String!, $user: String!){
+        createSession(id: $id, document: $document, user: $user) {
+            id, version, document, identifier, users
         }
     }`;
     createSessionMutation = mutation(CREATESESSION_MUTATION);        
@@ -67,85 +65,77 @@ const init = () => {
     const CHANGEDOCUMENT_MUTATION = gql`
         mutation($change: ChangeInput!){
             changeDocument(change: $change) {
-                content
+                delta
             }
         }`;
     changeDocumentMutation = mutation(CHANGEDOCUMENT_MUTATION);              
 };
 
-async function createSession(document) {
-    console.log("Create session ", document.id, get(user).id);
+async function createSession(id, document) {
+    console.log("Create session ", id, get(user).id);
         
     var result = await createSessionMutation({
-        variables: {                
-            document: document.id,
+        variables: {       
+            id: id,         
+            document: document,
             user: get(user).id
     }})
     
     session.set(result.data.createSession);        
 }
 
-function deleteSession() {    
-    const url = `${urlBuilder.getBaseUrl()}/api/deleteSession?document=${get(session).document}&user=${get(user).id}`;            
+function deleteSession() {  
+    console.log("Deleting session");
+    const url = `${urlBuilder.getBaseUrl()}/api/deleteSession?id=${get(session).id}&user=${get(user).id}`;            
     fetch(url, {
         method: "post",
         mode: "cors",                        
-        keepalive: true // needed when fetch is called from 
+        keepalive: true // needed when fetch is called from unload or pagehide
     });
+    session.set(null);
+    console.log("Deleted session");
+    
     if (sessionChangedUnsubscriber != null)
         sessionChangedUnsubscriber();
     if (documentChangedUnsubscriber != null)
         documentChangedUnsubscriber();
 }
 
-function subscribeForSessionChanges(document) {
-    console.log("Subscribing for changes to session for " + document.id);
-    
+function subscribeForSessionChanges(id) {
     const SESSIONCHANGED_SUBSCRIPTION = gql`
-    subscription($document:String!) {
-        sessionChanged(document:$document) {
-            id 
-            document
-            users
+    subscription($id:String!) {
+        sessionChanged(id:$id) {
+            id, version, users
         }
     }`;       
     
     sessionChangedSubscription = subscribe(SESSIONCHANGED_SUBSCRIPTION, {
         variables: {
-            document: document.id
+            id: id
     }});
 
     sessionChangedUnsubscriber = sessionChangedSubscription.subscribe(        
-        result => {              
-            if (result.data)
-            {
-                const newSession = {
-                    id: result.data.sessionChanged.id,
-                    document: result.data.sessionChanged.document,
-                    users: result.data.sessionChanged.users
-                };
-
-                session.set(newSession);                        
-            }
-            else
-            {
+        result => {   
+            if (result.data) {
+                session.set(result.data.sessionChanged);                        
+            } else {
                 session.set(null);
             }
         });
 }
 
-function subscribeForDocumentChanges(callback, instance, document) {
-    console.log("Subscribing for changes to document " + document.id);
+function subscribeForDocumentChanges(callback, instance, id) {
+    console.log("Subscribing for changes to document " + id);
 
     const DOCUMENTCHANGED_SUBSCRIPTION = gql`
-        subscription($document:String!) {
-            documentChanged(document:$document) {
-                content, instance
+        subscription($id:String!) {
+            documentChanged(id:$id) {
+                delta, instance
             }
         }`;         
     documentChangedSubscription = subscribe(DOCUMENTCHANGED_SUBSCRIPTION, {
         variables: {            
-            document: document.id
+            id: id
     }});
     
     documentChangedUnsubscriber = documentChangedSubscription.subscribe(        
@@ -158,10 +148,11 @@ function subscribeForDocumentChanges(callback, instance, document) {
 
 }
 
-async function changeDocument(document, instance, content) {
+async function changeDocument(id, instance, version, delta) {
+
     var result = await changeDocumentMutation({
         variables: {                
-            change: {document: document, instance: instance, content: content}            
+            change: {id: id, instance: instance, version: version, delta: delta}            
     }})    
 
     if (result.data == null) {

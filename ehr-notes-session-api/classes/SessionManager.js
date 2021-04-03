@@ -1,5 +1,4 @@
 import { Session } from "./Session.js";
-import { v4 } from "uuid";
 
 var _sessions = [];
 
@@ -8,23 +7,23 @@ class SessionManager {
         return _sessions;
     }
 
-    getByDocument(document) {
-        var s = _sessions.filter(s => s.document == document);
+    getById(id) {
+        var s = _sessions.filter(s => s.id == id);
         if (s.length == 0) {
             return null;
         }
         return s[0];
     }
 
-    addSession(document, user) {
-        var session = this.getByDocument(document);
+    addSession(id, document, user) {
+        var session = this.getById(id);
         var created = false;
 
         if (session) {
             session.addUser(user);
         }
         else {
-            session = new Session(v4(), document, user);
+            session = new Session(id, document, user);
             created = true;
             _sessions.push(session);
         }
@@ -32,8 +31,8 @@ class SessionManager {
         return { session, created };
     }
 
-    removeSession(document, user) {
-        var session = this.getByDocument(document);               
+    removeSession(id, user) {
+        var session = this.getById(id);               
         if (session)
         {
             var deleted = false;
