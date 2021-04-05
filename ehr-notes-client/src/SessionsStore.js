@@ -71,9 +71,7 @@ const init = () => {
     changeDocumentMutation = mutation(CHANGEDOCUMENT_MUTATION);              
 };
 
-async function createSession(id, document) {
-    console.log("Create session ", id, get(user).id);
-        
+async function createSession(id, document) {            
     var result = await createSessionMutation({
         variables: {       
             id: id,         
@@ -84,16 +82,14 @@ async function createSession(id, document) {
     session.set(result.data.createSession);        
 }
 
-function deleteSession() {  
-    console.log("Deleting session");
+function deleteSession() {      
     const url = `${urlBuilder.getBaseUrl()}/api/deleteSession?id=${get(session).id}&user=${get(user).id}`;            
     fetch(url, {
         method: "post",
         mode: "cors",                        
         keepalive: true // needed when fetch is called from unload or pagehide
     });
-    session.set(null);
-    console.log("Deleted session");
+    session.set(null);    
     
     if (sessionChangedUnsubscriber != null)
         sessionChangedUnsubscriber();

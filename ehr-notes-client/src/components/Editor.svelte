@@ -32,8 +32,7 @@
             // const change = {
             //     delta: event.change.delta,
             //     selection: event.change.selection
-            // }
-            console.log(otClient);
+            // }            
             otClient?.applyFromClient(event.change.delta);            
         }
     })
@@ -41,8 +40,7 @@
     function initializeOt(_v) {
         otClient = new OtClient(_v);
 
-        otClient.sendDelta = (_version, delta) => {
-            console.log("sendDelta");
+        otClient.sendDelta = (_version, delta) => {            
             changeDocument(document.id, instance, _version, JSON.stringify(delta));
         }
 
@@ -50,8 +48,7 @@
             
             isUpdating = true;
             try {
-                {            
-                    console.log("applyDelta");
+                {                                
                     var delta = new Delta(d);
                     editor.update(delta);     
 
@@ -77,14 +74,12 @@
     //     changeDocument(document.id, instance, JSON.stringify(change));
     // }
     session.subscribe(value => {
-        // Session was changed from outside this
-        console.log(value);
+        // Session was changed from outside this        
         if (value?.version > 0) {
             isUpdating = true;
             try {
                 if(value?.document) {
-                    editor.setDelta(new Delta(JSON.parse(value.document)));
-                    version = value.version;
+                    editor.setDelta(new Delta(JSON.parse(value.document)));                    
                 }
                 initializeOt(value.version);
             } finally {
@@ -106,22 +101,21 @@
 
     function onChanged(data){
         var delta = JSON.parse(data.delta);
-        console.log("onChanged", delta);
         if (data.instance != instance) {
             otClient.applyFromServer(delta);                                        
         } else {
             otClient.serverAck();
-        }            
+        }   
+        
+        version = otClient.version;         
     }
 
     $:{        
-        if (document != null)
-        {                    
+        if (document != null) {                    
             editor.setHTML(marked(document.markdown));                            
             subscribeForDocumentChanges(onChanged, document.id);
         }
-        else
-        {
+        else {
             editor.setText(null);
         }        
     }
