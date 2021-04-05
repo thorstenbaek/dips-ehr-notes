@@ -144,7 +144,6 @@ function subscribeForDocumentChanges(callback, id) {
                 callback(result.data.documentChanged);
             }
         });
-
 }
 
 async function changeDocument(id, instance, version, delta) {

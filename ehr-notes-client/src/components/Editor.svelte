@@ -11,7 +11,8 @@
     import Session from "./Session.svelte";    
     import Overlay from "./Overlay.svelte";
     import Avatars from "./Avatars.svelte";
-    import {changeDocument, session, subscribeForDocumentChanges} from "../SessionsStore";
+    import {changeDocument, session, subscribeForDocumentChanges} from "../SessionsStore";  
+    import OtClient from "../OtClient";  
 
     export let document = null;
     
@@ -24,6 +25,7 @@
     let rects;
     let avatars = {};
     let version = 0;
+    let otClient = null;
 
     editor.on("change", event => {            
         if (!isUpdating && event != null && event.change != null) {                        
@@ -31,10 +33,42 @@
             //     delta: event.change.delta,
             //     selection: event.change.selection
             // }
-
-            changeDocument(document.id, instance, version, JSON.stringify(event.change.delta));
+            console.log(otClient);
+            otClient?.applyFromClient(event.change.delta);            
         }
     })
+
+    function initializeOt(_v) {
+        otClient = new OtClient(_v);
+
+        otClient.sendDelta = (_version, delta) => {
+            console.log("sendDelta");
+            changeDocument(document.id, instance, _version, JSON.stringify(delta));
+        }
+
+        otClient.applyDelta = (d) => {
+            
+            isUpdating = true;
+            try {
+                {            
+                    console.log("applyDelta");
+                    var delta = new Delta(d);
+                    editor.update(delta);     
+
+                    /*if (change?.selection) {        
+                        avatars[data.instance] = change.selection;
+                    }*/
+                }    
+            } 
+            finally {
+                isUpdating = false;
+            }
+            
+            
+                               
+            // updateSelection();
+        }
+    }
 
     // function updateSelection() {
     //     const change = {
@@ -52,9 +86,13 @@
                     editor.setDelta(new Delta(JSON.parse(value.document)));
                     version = value.version;
                 }
+                initializeOt(value.version);
             } finally {
                 isUpdating = false;
             }                               
+        }
+        else {
+            initializeOt(0);
         }
     })
 
@@ -64,34 +102,16 @@
             selection: [0, 0]
         };
         changeDocument(document.id, instance, JSON.stringify(change));
-    }
-
-    function onSessionCreated(document) {
-        
-    }
+    }    
 
     function onChanged(data){
-        isUpdating = true;
-        try {
-            if (data.instance != instance)
-            {            
-                var change = JSON.parse(data.delta);
-                if (change?.ops?.length > 0)
-                {
-                    var delta = new Delta(change.ops);
-                    editor.update(delta);                        
-                    // updateSelection();
-                }
-
-                if (change?.selection) {        
-                    avatars[data.instance] = change.selection;
-                }
-            }    
-        } 
-        finally {
-            version++;        
-            isUpdating = false;
-        }
+        var delta = JSON.parse(data.delta);
+        console.log("onChanged", delta);
+        if (data.instance != instance) {
+            otClient.applyFromServer(delta);                                        
+        } else {
+            otClient.serverAck();
+        }            
     }
 
     $:{        
@@ -130,7 +150,7 @@
 </script>
     <svelte:window bind:innerHeight={height} bind:innerWidth={width}/>
     {#if document}
-        <Session id={document.id} editor={editor} version={version} on:onSessionClosed={onSessionClosed} on:onSessionCreated={onSessionCreated}>
+        <Session id={document.id} editor={editor} version={version} on:onSessionClosed={onSessionClosed} >
             <Toolbar editor={editor} 
                     sidebar={sidebar} 
                 on:toggleSidebar={toggleSidebar} 

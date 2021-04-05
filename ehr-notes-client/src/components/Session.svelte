@@ -2,7 +2,6 @@
     import { createEventDispatcher } from 'svelte';
     import {user} from "../SmartOnFhirStore";
     import {session, createSession, deleteSession, subscribeForSessionChanges} from "../SessionsStore";
-import { ExecutableDefinitionsRule } from 'graphql';
     
     const dispatch = createEventDispatcher();
     
