@@ -43,12 +43,14 @@
     //     changeDocument(document.id, instance, JSON.stringify(change));
     // }
     session.subscribe(value => {
+        // Session was changed from outside this
         console.log(value);
         if (value?.version > 0) {
             isUpdating = true;
             try {
                 if(value?.document) {
                     editor.setDelta(new Delta(JSON.parse(value.document)));
+                    version = value.version;
                 }
             } finally {
                 isUpdating = false;
@@ -72,7 +74,7 @@
         isUpdating = true;
         version++;
         console.log("version", version);
-
+        console.log("instances", data.instance, instance);
         if (data.instance != instance)
         {            
             var change = JSON.parse(data.delta);
@@ -127,7 +129,7 @@
 </script>
     <svelte:window bind:innerHeight={height} bind:innerWidth={width}/>
     {#if document}
-        <Session id={document.id} editor={editor} on:onSessionClosed={onSessionClosed} on:onSessionCreated={onSessionCreated}>
+        <Session id={document.id} editor={editor} version={version} on:onSessionClosed={onSessionClosed} on:onSessionCreated={onSessionCreated}>
             <Toolbar editor={editor} 
                     sidebar={sidebar} 
                 on:toggleSidebar={toggleSidebar} 

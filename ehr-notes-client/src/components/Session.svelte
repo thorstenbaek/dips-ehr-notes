@@ -8,6 +8,7 @@ import { ExecutableDefinitionsRule } from 'graphql';
     
     export let id;
     export let editor;
+    export let version;
 
     $: {
         if ($user && id && editor) {    
@@ -34,7 +35,7 @@ import { ExecutableDefinitionsRule } from 'graphql';
 
 {#if $session}
 <div class="session {$session?.users.length > 1 ? 'active' : ''}">
-    <div class="status">Session for document <b>{$session.id}</b></div>
+    <div class="status">Version: {version} Document: <b>{$session.id}</b></div>
     <slot/>
 </div>
 {:else}
