@@ -23,9 +23,9 @@ const typeDefs = `
   }
 
   type Change {
-    id: String
-    instance: String
-    delta: String    
+    id: String!
+    instance: String!
+    delta: String
   }
   
   type Mutation {

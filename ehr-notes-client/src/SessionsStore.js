@@ -124,7 +124,7 @@ function subscribeForSessionChanges(id) {
         });
 }
 
-function subscribeForDocumentChanges(callback, instance, id) {
+function subscribeForDocumentChanges(callback, id) {
     console.log("Subscribing for changes to document " + id);
 
     const DOCUMENTCHANGED_SUBSCRIPTION = gql`
@@ -140,8 +140,7 @@ function subscribeForDocumentChanges(callback, instance, id) {
     
     documentChangedUnsubscriber = documentChangedSubscription.subscribe(        
         result => {            
-            if (result?.data?.documentChanged)
-            {
+            if (result?.data?.documentChanged) {
                 callback(result.data.documentChanged);
             }
         });

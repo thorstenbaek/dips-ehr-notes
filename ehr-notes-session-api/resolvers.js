@@ -64,19 +64,15 @@ var resolvers = {
         },             
         changeDocument: (_, args, {dataSources}) => {
           var session = dataSources.sessionManager.getById(args.change.id);
-          console.log("version", args.change.version);
 
           if (session) {
             // Sending the change to OT-server (session)
-            var receivedChange = JSON.stringify(session.change(args.change.version, args.change.delta));            
-          
+            var receivedChange = JSON.stringify(session.change(args.change.version, args.change.delta));                        
             pubsub.publish(["DOCUMENT_CHANGED"], {                
                 documentChanged: {
-                  change: {
-                    id: args.change.id,
-                    identifier: args.change.identifier,
-                    delta: receivedChange
-                  }
+                  id: session.id,
+                  instance: args.change.instance,
+                  delta: receivedChange
                 }
             });
             return receivedChange;
@@ -111,7 +107,7 @@ var resolvers = {
           () => pubsub.asyncIterator(["DOCUMENT_CHANGED"]),
           (payload, variables) => {   
             console.log("withFilter", payload.documentChanged, variables.id) 
-            return payload.documentChanged.change.id === variables.id;
+            return payload.documentChanged.id === variables.id;
           })
       }
   }

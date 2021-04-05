@@ -72,32 +72,33 @@
 
     function onChanged(data){
         isUpdating = true;
-        version++;
-        console.log("version", version);
-        console.log("instances", data.instance, instance);
-        if (data.instance != instance)
-        {            
-            var change = JSON.parse(data.delta);
-            if (change?.ops?.length > 0)
-            {
-                var delta = new Delta(change.ops);
-                editor.update(delta);                        
-                updateSelection();
-            }
+        try {
+            if (data.instance != instance)
+            {            
+                var change = JSON.parse(data.delta);
+                if (change?.ops?.length > 0)
+                {
+                    var delta = new Delta(change.ops);
+                    editor.update(delta);                        
+                    // updateSelection();
+                }
 
-            if (change?.selection) {        
-                avatars[data.instance] = change.selection;
-            }
-        }        
-        
-        isUpdating = false;
+                if (change?.selection) {        
+                    avatars[data.instance] = change.selection;
+                }
+            }    
+        } 
+        finally {
+            version++;        
+            isUpdating = false;
+        }
     }
 
     $:{        
         if (document != null)
         {                    
             editor.setHTML(marked(document.markdown));                            
-            subscribeForDocumentChanges(onChanged, instance, document.id);
+            subscribeForDocumentChanges(onChanged, document.id);
         }
         else
         {
