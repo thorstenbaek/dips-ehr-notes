@@ -7,12 +7,12 @@ const typeDefs = `
   }
 
   type Session {
-      id: String!
-      version: Int!
-      document: String
-      identifier: String!
-      users: [String]
-      color: String
+    id: String!
+    version: Int!
+    document: String
+    identifier: String!
+    users: [String]
+    color: String
   }
   
   input ChangeInput {
@@ -28,11 +28,26 @@ const typeDefs = `
     delta: String
   }
   
+  input SelectionInput {
+    id: String!
+    instance: String!
+    start: Int!
+    end: Int
+  }
+  
+  type Selection {
+    id: String!
+    instance: String!
+    start: Int!
+    end: Int
+  }
+
   type Mutation {
-      createSession(id: String!, document: String!, user: String!): Session
-      deleteSession(id: String!, user: String!): String           
-      flushSessions: String
-      changeDocument(change: ChangeInput!): Change       
+    createSession(id: String!, document: String!, user: String!): Session
+    deleteSession(id: String!, user: String!): String           
+    flushSessions: String
+    changeDocument(change: ChangeInput!): Change       
+    changeSelection(selection: SelectionInput!): Selection
   }
 
   type Subscription {
@@ -40,7 +55,7 @@ const typeDefs = `
     sessionChanged(id: String!): Session
     sessionDeleted(id: String!): Session
     documentChanged(id: String!): Change    
+    selectionChanged(id: String!): Selection
   }`;
 
 export default typeDefs;
-

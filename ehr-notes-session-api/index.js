@@ -1,15 +1,19 @@
+import _ from "lodash";
 import express from "express";
 import http from "http";
-import fetch from "node-fetch";
 import { ApolloServer, PubSub }  from 'apollo-server-express';
 import typeDefs from "./schema.js";
-import resolvers from "./resolvers.js";
+import sessionResolvers from "./sessionResolvers.js";
+import documentResolvers from "./documentResolvers.js";
+import selectionResolvers from "./selectionResolvers.js";
 import SessionManager from './classes/SessionManager.js';
 import { request, gql } from 'graphql-request'
 
 const app = express();
 const port = process.env.PORT || 4000;
 const sessionManager = new SessionManager();
+const resolvers = _.merge({}, sessionResolvers, documentResolvers, selectionResolvers);
+console.log(resolvers);
 
 const server = new ApolloServer(
     { 

@@ -3,7 +3,7 @@ import { PubSub, withFilter } from "apollo-server-express";
 const pubsub = new PubSub();
 pubsub.ee.setMaxListeners(30); 
 
-var resolvers = {
+var sessionResolvers = {
     Query: {
         session: (_, args, {dataSources}) => {
             return dataSources.sessionManager.getById(args.id);            
@@ -62,23 +62,7 @@ var resolvers = {
             });
           });
         },             
-        changeDocument: (_, args, {dataSources}) => {
-          var session = dataSources.sessionManager.getById(args.change.id);
-
-          if (session) {
-            // Sending the change to OT-server (session)
-            var receivedChange = JSON.stringify(session.change(args.change.version, args.change.delta));                        
-            pubsub.publish(["DOCUMENT_CHANGED"], {                
-                documentChanged: {
-                  id: session.id,
-                  instance: args.change.instance,
-                  delta: receivedChange
-                }
-            });
-            return receivedChange;
-          }
-        }
-    }, 
+    },
 
     Subscription: {        
       sessionCreated: {
@@ -101,17 +85,9 @@ var resolvers = {
           (payload, variables) => {
             return payload.sessionDeleted.id === variables.id;
           })
-      },
-      documentChanged: {
-        subscribe: withFilter(
-          () => pubsub.asyncIterator(["DOCUMENT_CHANGED"]),
-          (payload, variables) => {   
-            console.log("withFilter", payload.documentChanged, variables.id) 
-            return payload.documentChanged.id === variables.id;
-          })
-      }
+      },      
   }
 }
 
-export default resolvers;
+export default sessionResolvers;
 

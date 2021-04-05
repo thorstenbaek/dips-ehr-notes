@@ -22,6 +22,9 @@ let changeDocumentMutation;
 let documentChangedSubscription;
 let documentChangedUnsubscriber;
 
+let changeSelectionMutation;
+let selectionChangedSubscription;
+let selectionChangedUnsubscriber;
         
 const init = () => {
     urlBuilder = new UrlBuilder(get(settings).SessionsApiUrl);
@@ -68,7 +71,16 @@ const init = () => {
                 delta
             }
         }`;
-    changeDocumentMutation = mutation(CHANGEDOCUMENT_MUTATION);              
+    changeDocumentMutation = mutation(CHANGEDOCUMENT_MUTATION);           
+    
+    const CHANGESELECTION_MUTATION = gql`
+        mutation($selection: SelectionInput!){
+            changeSelection(selection: $selection) {
+                start
+                end
+            }
+        }`;
+    changeSelectionMutation = mutation(CHANGESELECTION_MUTATION);
 };
 
 async function createSession(id, document) {            
@@ -142,17 +154,49 @@ function subscribeForDocumentChanges(callback, id) {
         });
 }
 
-async function changeDocument(id, instance, version, delta) {
+function subscribeForSelectionChanges(callback, id) {
+    console.log("Subscribing for changes to selection " + id);
 
+    const SELECTIONCHANGED_SUBSCRIPTION = gql`
+        subscription($id:String!) {
+            selectionChanged(id:$id) {
+                instance, start, end
+            }
+        }`;         
+    selectionChangedSubscription = subscribe(SELECTIONCHANGED_SUBSCRIPTION, {
+        variables: {            
+            id: id
+    }});
+    
+    selectionChangedUnsubscriber = selectionChangedSubscription.subscribe(        
+        result => {  
+            if (result?.data?.selectionChanged) {
+                callback(result.data.selectionChanged);
+            }
+        });
+}
+
+async function changeDocument(id, instance, version, delta) {
     var result = await changeDocumentMutation({
         variables: {                
             change: {id: id, instance: instance, version: version, delta: delta}            
     }})    
 
-    if (result.data == null) {
-        console.error("Failed to send document changed")
+    if (!result.data) {
+        console.error("Failed to send document change")
+    }
+}
+
+async function changeSelection(id, instance, selection) {
+    var result = await changeSelectionMutation({
+        variables: {
+            selection: {id: id, instance: instance, start: selection[0], end: selection[1]}
+    }})
+
+    if (!result.data) {
+        console.error("Failed to send selection change");
     }
 }
 
 
-export {init as initSessions, createSession, deleteSession, subscribeForSessionChanges, changeDocument, subscribeForDocumentChanges};
+export {init as initSessions, createSession, deleteSession, subscribeForSessionChanges, changeDocument, subscribeForDocumentChanges, changeSelection, subscribeForSelectionChanges};

@@ -11,7 +11,7 @@
     import Session from "./Session.svelte";    
     import Overlay from "./Overlay.svelte";
     import Avatars from "./Avatars.svelte";
-    import {changeDocument, session, subscribeForDocumentChanges} from "../SessionsStore";  
+    import {changeDocument, session, subscribeForDocumentChanges, changeSelection, subscribeForSelectionChanges} from "../SessionsStore";  
     import OtClient from "../OtClient";  
 
     export let document = null;
@@ -29,19 +29,18 @@
 
     editor.on("change", event => {            
         if (!isUpdating && event != null && event.change != null) {                        
-            // const change = {
-            //     delta: event.change.delta,
-            //     selection: event.change.selection
-            // }            
+                      
             otClient?.applyFromClient(event.change.delta);            
+            changeSelection(document.id, instance, event.change.selection);
         }
     })
 
     function initializeOt(_v) {
         otClient = new OtClient(_v);
 
-        otClient.sendDelta = (_version, delta) => {            
-            changeDocument(document.id, instance, _version, JSON.stringify(delta));
+        otClient.sendDelta = (_v, delta) => {            
+            changeDocument(document.id, instance, _v, JSON.stringify(delta));
+            changeSelection(document.id, instance, editor.doc.selection);
         }
 
         otClient.applyDelta = (d) => {
@@ -50,29 +49,15 @@
             try {
                 {                                
                     var delta = new Delta(d);
-                    editor.update(delta);     
-
-                    /*if (change?.selection) {        
-                        avatars[data.instance] = change.selection;
-                    }*/
+                    editor.update(delta);                         
                 }    
             } 
             finally {
                 isUpdating = false;
-            }
-            
-            
-                               
-            // updateSelection();
+            }            
         }
     }
-
-    // function updateSelection() {
-    //     const change = {
-    //         selection: editor.doc.selection
-    //     };
-    //     changeDocument(document.id, instance, JSON.stringify(change));
-    // }
+    
     session.subscribe(value => {
         // Session was changed from outside this        
         if (value?.version > 0) {
@@ -99,7 +84,7 @@
         changeDocument(document.id, instance, JSON.stringify(change));
     }    
 
-    function onChanged(data){
+    function onChanged(data) {
         var delta = JSON.parse(data.delta);
         if (data.instance != instance) {
             otClient.applyFromServer(delta);                                        
@@ -110,10 +95,17 @@
         version = otClient.version;         
     }
 
+    function onSelectionChanged(data) {
+        if (data.instance != instance) {           
+            avatars[data.instance] = [data.start, data.end];            
+        }
+    }
+
     $:{        
         if (document != null) {                    
             editor.setHTML(marked(document.markdown));                            
             subscribeForDocumentChanges(onChanged, document.id);
+            subscribeForSelectionChanges(onSelectionChanged, document.id);
         }
         else {
             editor.setText(null);
