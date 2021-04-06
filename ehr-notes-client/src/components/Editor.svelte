@@ -33,14 +33,13 @@
             otClient?.applyFromClient(event.change.delta);            
             changeSelection(document.id, instance, event.change.selection);
         }
-    })
+    })    
 
     function initializeOt(_v) {
         otClient = new OtClient(_v);
 
         otClient.sendDelta = (_v, delta) => {            
             changeDocument(document.id, instance, _v, JSON.stringify(delta));
-            changeSelection(document.id, instance, editor.doc.selection);
         }
 
         otClient.applyDelta = (d) => {
@@ -49,7 +48,9 @@
             try {
                 {                                
                     var delta = new Delta(d);
-                    editor.update(delta);                         
+                    editor.update(delta);       
+                    // update selection in other clients
+                    changeSelection(document.id, instance, editor.doc.selection);                  
                 }    
             } 
             finally {
