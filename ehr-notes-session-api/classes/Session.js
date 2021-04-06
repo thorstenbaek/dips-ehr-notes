@@ -4,9 +4,13 @@ import { v4 } from "uuid";
 export class Session {
     #deltaDoc;
 
+    
+
     constructor(id, document, user) {
         this.id = id,
         this.#deltaDoc = new Delta(JSON.parse(document));        
+        this.colors = ["#ebac23", "#b80058", "#008cf9", "#006e00", "#00bbad", "#d163e6", "#b24502", "#ff9287", "#5954d6", "#00c6f8"];
+        user.color = this.colors[0];
         this.users = [user];
         this.identifier = v4();
         this.deltas = [];
@@ -50,15 +54,23 @@ export class Session {
     }
 
     addUser(user) {
-        this.users.push(user);
+        if (this.users.length < this.colors.length) {
+            user.color = this.colors[this.users.length];
+            this.users.push(user);
+        }
     }
 
-    removeUser(user) {
-        var index = this.users.indexOf(user);
-        if (index >= 0) {
-            this.users.splice(index, 1);
-        }        
-    }
+    removeUser(userId) {        
+        var i = this.users.length;
+        while(i--){
+            if( this.users[i] &&
+                this.users[i].id == userId) {
+    
+                this.users.splice(i,1);
+                return;
+            }
+        }
+    }                    
 
     hasMultipleUsers() {
         return this.users.length > 1;

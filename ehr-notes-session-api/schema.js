@@ -11,8 +11,20 @@ const typeDefs = `
     version: Int!
     document: String
     identifier: String!
-    users: [String]
+    users: [User]
     color: String
+  }
+
+  input UserInput {
+    id: String!
+    instance: String!
+    color: String!
+  }
+
+  type User {
+    id: String!
+    instance: String!
+    color: String!
   }
   
   input ChangeInput {
@@ -43,7 +55,7 @@ const typeDefs = `
   }
 
   type Mutation {
-    createSession(id: String!, document: String!, user: String!): Session
+    createSession(id: String!, document: String!, user: UserInput!): Session
     deleteSession(id: String!, user: String!): String           
     flushSessions: String
     changeDocument(change: ChangeInput!): Change       

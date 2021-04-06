@@ -6,12 +6,14 @@ import { split } from 'apollo-link';
 import { getMainDefinition } from 'apollo-utilities';
 import { setClient, mutation, subscribe } from "svelte-apollo";
 import gql from 'graphql-tag';
-import { get, writable } from "svelte/store";
+import { get, writable, readable } from "svelte/store";
+import { v4 } from "uuid";
 import { user } from "./SmartOnFhirStore";
 import { settings } from "./stores";
 import UrlBuilder from "./UrlBuilder";
 
 export let session = writable(null);
+export let instance = writable(v4());
 
 let urlBuilder;
 let createSessionMutation;
@@ -58,9 +60,17 @@ const init = () => {
     setClient(client);
 
     const CREATESESSION_MUTATION = gql`    
-    mutation($id: String!, $document: String!, $user: String!){
+    mutation($id: String!, $document: String!, $user: UserInput!){
         createSession(id: $id, document: $document, user: $user) {
-            id, version, document, identifier, users
+            id
+            version
+            document
+            identifier
+            users {
+                id
+                instance
+                color        
+            }
         }
     }`;
     createSessionMutation = mutation(CREATESESSION_MUTATION);        
@@ -83,19 +93,27 @@ const init = () => {
     changeSelectionMutation = mutation(CHANGESELECTION_MUTATION);
 };
 
+function getUniqueUserId()
+{
+    return `${get(user).id}:${get(instance)}`;
+}
+
 async function createSession(id, document) {            
     var result = await createSessionMutation({
         variables: {       
             id: id,         
             document: document,
-            user: get(user).id
+            user: {                
+                id: getUniqueUserId(), 
+                instance: get(instance),
+                color: "#4CAF50" }
     }})
     
     session.set(result.data.createSession);        
 }
 
 function deleteSession() {      
-    const url = `${urlBuilder.getBaseUrl()}/api/deleteSession?id=${get(session).id}&user=${get(user).id}`;            
+    const url = `${urlBuilder.getBaseUrl()}/api/deleteSession?id=${get(session).id}&user=${getUniqueUserId()}`;            
     fetch(url, {
         method: "post",
         mode: "cors",                        
@@ -113,7 +131,7 @@ function subscribeForSessionChanges(id) {
     const SESSIONCHANGED_SUBSCRIPTION = gql`
     subscription($id:String!) {
         sessionChanged(id:$id) {
-            id, version, users
+            id, version, users { id, instance, color }
         }
     }`;       
     
@@ -188,13 +206,16 @@ async function changeDocument(id, instance, version, delta) {
 }
 
 async function changeSelection(id, instance, selection) {
-    var result = await changeSelectionMutation({
-        variables: {
-            selection: {id: id, instance: instance, start: selection[0], end: selection[1]}
-    }})
+    if (selection)
+    {
+        var result = await changeSelectionMutation({
+            variables: {
+                selection: {id: id, instance: instance, start: selection[0], end: selection[1]}
+        }})
 
-    if (!result.data) {
-        console.error("Failed to send selection change");
+        if (!result.data) {
+            console.error("Failed to send selection change");
+        }
     }
 }
 

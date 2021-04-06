@@ -17,7 +17,7 @@ var sessionResolvers = {
     Mutation: {
         createSession: (_, args, {dataSources}) => {               
             const result = dataSources.sessionManager.addSession(args.id, args.document, args.user);    
-        
+            console.log(result);
             if (result.created)
             {
               pubsub.publish(["SESSION_CREATED"], {
