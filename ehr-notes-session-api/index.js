@@ -1,15 +1,19 @@
+import _ from "lodash";
 import express from "express";
 import http from "http";
-import fetch from "node-fetch";
 import { ApolloServer, PubSub }  from 'apollo-server-express';
 import typeDefs from "./schema.js";
-import resolvers from "./resolvers.js";
+import sessionResolvers from "./sessionResolvers.js";
+import documentResolvers from "./documentResolvers.js";
+import selectionResolvers from "./selectionResolvers.js";
 import SessionManager from './classes/SessionManager.js';
 import { request, gql } from 'graphql-request'
 
 const app = express();
 const port = process.env.PORT || 4000;
 const sessionManager = new SessionManager();
+const resolvers = _.merge({}, sessionResolvers, documentResolvers, selectionResolvers);
+console.log(resolvers);
 
 const server = new ApolloServer(
     { 
@@ -48,18 +52,18 @@ app.get("/health", (req, res) => {
 });
 
 app.post("/api/deleteSession", (req, res) => {
-  if (req.query.document && req.query.user)
+  if (req.query.id && req.query.user)
   {
 
     const mutation = gql`
-        mutation($document: String!, $user: String!) { 
-            deleteSession(document:$document, user:$user) 
+        mutation($id: String!, $user: String!) { 
+            deleteSession(id:$id, user:$user) 
         }
     `;
 
     const variables = {
-        document: "b3e32146-848c-4d3b-b8a9-c9b3a7861a6a", 
-        user:"f58db7ee-0c33-43e3-8f91-c33bd9255455"
+        id: req.query.id, 
+        user: req.query.user
       }
 
     request(`http://localhost:${port}/graphql`, mutation, variables).then(data => {

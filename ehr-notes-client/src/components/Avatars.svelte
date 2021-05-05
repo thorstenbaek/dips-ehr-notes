@@ -3,24 +3,28 @@
 
     export let editor;
     export let avatars;
-
-
+    export let users;
         
     $: render = ({ context, width, height}) => {
         
 
-        if (avatars && editor) {
-            var selections = Object.values(avatars);
-            selections.map(s => {
+        if (avatars && editor && users) {
+            var keys = Object.keys(avatars);
+            keys.map(k => {
+                var s = avatars[k];            
+                var user = users.filter(u => u.instance == k);
+                var color = user.length == 1 ? user[0].color : "transparent";
+                
                 var rects = editor.getAllBounds(s);
                 for(var i = 0; i < rects.length; i++) {
                     const r = rects[i];
-                    if (r.width < 1) {
-                        context.fillStyle = 'rgba(255, 165, 0, 1.0)';                    
-                        context.fillRect(r.x, r.y, 3, r.height);
-                    }
-                    else { 
-                        context.fillStyle = 'rgba(255, 165, 0, 0.4)';                    
+
+                    context.fillStyle = color;                           
+                    context.globalAlpha = 1;                 
+                    context.fillRect(r.x, r.y, 3, r.height);
+                    if (r.width >= 1) {
+                        context.fillStyle = color;                    
+                        context.globalAlpha = 0.45;                 
                         context.fillRect(r.x, r.y, r.width, r.height);                  
                     }
                 }                

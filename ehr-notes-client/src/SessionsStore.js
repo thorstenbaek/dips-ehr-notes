@@ -6,12 +6,14 @@ import { split } from 'apollo-link';
 import { getMainDefinition } from 'apollo-utilities';
 import { setClient, mutation, subscribe } from "svelte-apollo";
 import gql from 'graphql-tag';
-import { get, writable } from "svelte/store";
+import { get, writable, readable } from "svelte/store";
+import { v4 } from "uuid";
 import { user } from "./SmartOnFhirStore";
 import { settings } from "./stores";
 import UrlBuilder from "./UrlBuilder";
 
 export let session = writable(null);
+export let instance = writable(v4());
 
 let urlBuilder;
 let createSessionMutation;
@@ -22,6 +24,9 @@ let changeDocumentMutation;
 let documentChangedSubscription;
 let documentChangedUnsubscriber;
 
+let changeSelectionMutation;
+let selectionChangedSubscription;
+let selectionChangedUnsubscriber;
         
 const init = () => {
     urlBuilder = new UrlBuilder(get(settings).SessionsApiUrl);
@@ -55,11 +60,17 @@ const init = () => {
     setClient(client);
 
     const CREATESESSION_MUTATION = gql`    
-    mutation($document: String!, $user: String!){
-        createSession(document: $document, user: $user) {
+    mutation($id: String!, $document: String!, $user: UserInput!){
+        createSession(id: $id, document: $document, user: $user) {
             id
-            document,
-            users
+            version
+            document
+            identifier
+            users {
+                id
+                instance
+                color        
+            }
         }
     }`;
     createSessionMutation = mutation(CREATESESSION_MUTATION);        
@@ -67,107 +78,146 @@ const init = () => {
     const CHANGEDOCUMENT_MUTATION = gql`
         mutation($change: ChangeInput!){
             changeDocument(change: $change) {
-                content
+                delta
             }
         }`;
-    changeDocumentMutation = mutation(CHANGEDOCUMENT_MUTATION);              
+    changeDocumentMutation = mutation(CHANGEDOCUMENT_MUTATION);           
+    
+    const CHANGESELECTION_MUTATION = gql`
+        mutation($selection: SelectionInput!){
+            changeSelection(selection: $selection) {
+                start
+                end
+            }
+        }`;
+    changeSelectionMutation = mutation(CHANGESELECTION_MUTATION);
 };
 
-async function createSession(document) {
-    console.log("Create session ", document.id, get(user).id);
-        
+function getUniqueUserId()
+{
+    return `${get(user).id}:${get(instance)}`;
+}
+
+async function createSession(id, document) {            
     var result = await createSessionMutation({
-        variables: {                
-            document: document.id,
-            user: get(user).id
+        variables: {       
+            id: id,         
+            document: document,
+            user: {                
+                id: getUniqueUserId(), 
+                instance: get(instance),
+                color: "#4CAF50" }
     }})
     
     session.set(result.data.createSession);        
 }
 
-function deleteSession() {    
-    const url = `${urlBuilder.getBaseUrl()}/api/deleteSession?document=${get(session).document}&user=${get(user).id}`;            
+function deleteSession() {      
+    const url = `${urlBuilder.getBaseUrl()}/api/deleteSession?id=${get(session).id}&user=${getUniqueUserId()}`;            
     fetch(url, {
         method: "post",
         mode: "cors",                        
-        keepalive: true // needed when fetch is called from 
+        keepalive: true // needed when fetch is called from unload or pagehide
     });
+    session.set(null);    
+    
     if (sessionChangedUnsubscriber != null)
         sessionChangedUnsubscriber();
     if (documentChangedUnsubscriber != null)
         documentChangedUnsubscriber();
 }
 
-function subscribeForSessionChanges(document) {
-    console.log("Subscribing for changes to session for " + document.id);
-    
+function subscribeForSessionChanges(id) {
     const SESSIONCHANGED_SUBSCRIPTION = gql`
-    subscription($document:String!) {
-        sessionChanged(document:$document) {
-            id 
-            document
-            users
+    subscription($id:String!) {
+        sessionChanged(id:$id) {
+            id, version, users { id, instance, color }
         }
     }`;       
     
     sessionChangedSubscription = subscribe(SESSIONCHANGED_SUBSCRIPTION, {
         variables: {
-            document: document.id
+            id: id
     }});
 
     sessionChangedUnsubscriber = sessionChangedSubscription.subscribe(        
-        result => {              
-            if (result.data)
-            {
-                const newSession = {
-                    id: result.data.sessionChanged.id,
-                    document: result.data.sessionChanged.document,
-                    users: result.data.sessionChanged.users
-                };
-
-                session.set(newSession);                        
-            }
-            else
-            {
+        result => {   
+            if (result.data) {
+                session.set(result.data.sessionChanged);                        
+            } else {
                 session.set(null);
             }
         });
 }
 
-function subscribeForDocumentChanges(callback, instance, document) {
-    console.log("Subscribing for changes to document " + document.id);
+function subscribeForDocumentChanges(callback, id) {
+    console.log("Subscribing for changes to document " + id);
 
     const DOCUMENTCHANGED_SUBSCRIPTION = gql`
-        subscription($document:String!) {
-            documentChanged(document:$document) {
-                content, instance
+        subscription($id:String!) {
+            documentChanged(id:$id) {
+                delta, instance
             }
         }`;         
     documentChangedSubscription = subscribe(DOCUMENTCHANGED_SUBSCRIPTION, {
         variables: {            
-            document: document.id
+            id: id
     }});
     
     documentChangedUnsubscriber = documentChangedSubscription.subscribe(        
         result => {            
-            if (result?.data?.documentChanged)
-            {
+            if (result?.data?.documentChanged) {
                 callback(result.data.documentChanged);
             }
         });
-
 }
 
-async function changeDocument(document, instance, content) {
+function subscribeForSelectionChanges(callback, id) {
+    console.log("Subscribing for changes to selection " + id);
+
+    const SELECTIONCHANGED_SUBSCRIPTION = gql`
+        subscription($id:String!) {
+            selectionChanged(id:$id) {
+                instance, start, end
+            }
+        }`;         
+    selectionChangedSubscription = subscribe(SELECTIONCHANGED_SUBSCRIPTION, {
+        variables: {            
+            id: id
+    }});
+    
+    selectionChangedUnsubscriber = selectionChangedSubscription.subscribe(        
+        result => {  
+            if (result?.data?.selectionChanged) {
+                callback(result.data.selectionChanged);
+            }
+        });
+}
+
+async function changeDocument(id, instance, version, delta) {
     var result = await changeDocumentMutation({
         variables: {                
-            change: {document: document, instance: instance, content: content}            
+            change: {id: id, instance: instance, version: version, delta: delta}            
     }})    
 
-    if (result.data == null) {
-        console.error("Failed to send document changed")
+    if (!result.data) {
+        console.error("Failed to send document change")
+    }
+}
+
+async function changeSelection(id, instance, selection) {
+    if (selection)
+    {
+        var result = await changeSelectionMutation({
+            variables: {
+                selection: {id: id, instance: instance, start: selection[0], end: selection[1]}
+        }})
+
+        if (!result.data) {
+            console.error("Failed to send selection change");
+        }
     }
 }
 
 
-export {init as initSessions, createSession, deleteSession, subscribeForSessionChanges, changeDocument, subscribeForDocumentChanges};
+export {init as initSessions, createSession, deleteSession, subscribeForSessionChanges, changeDocument, subscribeForDocumentChanges, changeSelection, subscribeForSelectionChanges};

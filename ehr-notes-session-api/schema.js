@@ -3,40 +3,71 @@
 const typeDefs = `
   type Query {    
     sessions: [Session]
-    session(document: String!): Session    
+    session(id: String!): Session    
   }
 
   type Session {
-      id: String
-      document: String
-      users: [String]
+    id: String!
+    version: Int!
+    document: String
+    identifier: String!
+    users: [User]
+    color: String
+  }
+
+  input UserInput {
+    id: String!
+    instance: String!
+    color: String!
+  }
+
+  type User {
+    id: String!
+    instance: String!
+    color: String!
   }
   
   input ChangeInput {
-    document: String
-    instance: String
-    content: String    
+    id: String!    
+    instance: String!
+    version: Int
+    delta: String    
   }
 
   type Change {
-    document: String
-    content: String
-    instance: String
+    id: String!
+    instance: String!
+    delta: String
   }
   
+  input SelectionInput {
+    id: String!
+    instance: String!
+    start: Int!
+    end: Int
+  }
+  
+  type Selection {
+    id: String!
+    instance: String!
+    start: Int!
+    end: Int
+  }
+
   type Mutation {
-      createSession(document: String!, user: String!): Session
-      deleteSession(document: String!, user: String!): String           
-      flushSessions: String
-      changeDocument(change: ChangeInput!): Change       
+    createSession(id: String!, document: String!, user: UserInput!): Session
+    deleteSession(id: String!, user: String!): String           
+    flushSessions: String
+    changeDocument(change: ChangeInput!): Change       
+    changeSelection(selection: SelectionInput!): Selection
   }
 
   type Subscription {
-    sessionCreated(document: String!): Session
-    sessionChanged(document: String!): Session
-    sessionDeleted(document: String!): Session
-    documentChanged(document: String!): Change    
+    sessionCreated(id: String!): Session
+    sessionChanged(id: String!): Session
+    sessionDeleted(id: String!): Session
+    documentChanged(id: String!): Change    
+    selectionChanged(id: String!): Selection
   }`;
 
 export default typeDefs;
-

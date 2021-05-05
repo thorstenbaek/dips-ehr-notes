@@ -9,76 +9,100 @@
     import Toolbar from "./Toolbar.svelte";            
     import Sidebar from "./Sidebar.svelte";
     import Session from "./Session.svelte";    
-    import Overlay from "./Overlay.svelte";
     import Avatars from "./Avatars.svelte";
-    import {changeDocument, subscribeForDocumentChanges} from "../SessionsStore";
+    import {changeDocument, session, instance, subscribeForDocumentChanges, changeSelection, subscribeForSelectionChanges} from "../SessionsStore";  
+    import OtClient from "../OtClient";  
 
     export let document = null;
     
-    let instance = v4();
-    let sidebar = true;            
+    let sidebar = false;            
     let selection = [];
     let isUpdating = false;
     let height, width;
     let editor = new Editor();        
-    let rects;
-    let avatars = {};
+    let avatars = {};    
+    let otClient = null;
 
     editor.on("change", event => {            
         if (!isUpdating && event != null && event.change != null) {                        
-            const change = {
-                ops: event.change.delta.ops,
-                selection: event.change.selection
-            }
+                      
+            otClient?.applyFromClient(event.change.delta);            
+            changeSelection(document.id, $instance, event.change.selection);
+        }
+    })    
 
-            changeDocument(document.id, instance, JSON.stringify(change));
+    function initializeOt(_v) {
+        otClient = new OtClient(_v);
+
+        otClient.sendDelta = (_v, delta) => {            
+            changeDocument(document.id, $instance, _v, JSON.stringify(delta));
+        }
+
+        otClient.applyDelta = (d) => {
+            
+            isUpdating = true;
+            try {
+                {                                
+                    var delta = new Delta(d);
+                    editor.update(delta);       
+                    // update selection in other clients
+                    changeSelection(document.id, $instance, editor.doc.selection);                  
+                }    
+            } 
+            finally {
+                isUpdating = false;
+            }            
+        }
+    }
+    
+    session.subscribe(value => {
+        // Session was changed from outside this        
+        if (value?.version > 0) {
+            isUpdating = true;
+            try {
+                if(value?.document) {
+                    editor.setDelta(new Delta(JSON.parse(value.document)));                    
+                }
+                initializeOt(value.version);
+            } finally {
+                isUpdating = false;
+            }                               
+        }
+        else {
+            initializeOt(0);
         }
     })
-
-    function updateSelection() {
-        const change = {
-            selection: editor.doc.selection
-        };
-        changeDocument(document.id, instance, JSON.stringify(change));
-    }
 
     function onSessionClosed() {
         // reset selection
         const change = {
             selection: [0, 0]
         };
-        changeDocument(document.id, instance, JSON.stringify(change));
+        changeDocument(document.id, $instance, JSON.stringify(change));
+    }    
+
+    function onChanged(data) {
+        var delta = JSON.parse(data.delta);
+        if (data.instance != $instance) {
+            otClient.applyFromServer(delta);                                        
+        } else {
+            otClient.serverAck();
+        }               
     }
 
-    function onChanged(data){
-        isUpdating = true;
-        
-        if (data.instance != instance)
-        {            
-            var change = JSON.parse(data.content);
-            if (change.ops?.length > 0)
-            {
-                var delta = new Delta(change.ops);
-                editor.update(delta);                        
-                updateSelection();
-            }
-
-            if (change.selection) {        
-                avatars[data.instance] = change.selection;
-            }
-        }        
-        
-        isUpdating = false;
+    function onSelectionChanged(data) {
+        if (data.instance != $instance) {           
+            avatars[data.instance] = [data.start, data.end];            
+        }
     }
 
     $:{        
-        if (document != null)
-        {                    
+        if (document != null) {                    
             editor.setHTML(marked(document.markdown));                            
-            subscribeForDocumentChanges(onChanged, instance, document);
+            subscribeForDocumentChanges(onChanged, document.id);
+            subscribeForSelectionChanges(onSelectionChanged, document.id);
         }
-        else
-        {
+        else {
             editor.setText(null);
         }        
     }
@@ -87,38 +111,20 @@
     {
         sidebar = !sidebar;
     }   
-
-    function drawRect()
-    {
-        var range = editor.doc.selection;
-        if (range)
-        {
-            var tempRects = []; 
-            var rectsList = editor.getAllBounds(range);                
-            for(var i = 0; i < rectsList.length; i++)
-            {
-                tempRects.push(rectsList[i]);
-            }
-
-            rects = [...tempRects];
-        }
-    }
     
 </script>
     <svelte:window bind:innerHeight={height} bind:innerWidth={width}/>
     {#if document}
-        <Session document={document} on:onSessionClosed={onSessionClosed}>
+        <Session id={document.id} editor={editor} on:onSessionClosed={onSessionClosed} >
             <Toolbar editor={editor} 
                     sidebar={sidebar} 
-                on:toggleSidebar={toggleSidebar} 
-                on:createRange={drawRect}/>
+                on:toggleSidebar={toggleSidebar}/>            
                 <div class="scroll">
                     <div class="container">
                         <div use:asRoot={editor} class="editor" spellcheck="false" />
                         <div class="canvas">
                             <Canvas width={width} height={height}>
-                                <Avatars {editor} {avatars} /> 
-                                <Overlay {rects} />
+                                <Avatars {editor} {avatars} users={$session?.users}/> 
                             </Canvas>                        
                         </div>
                         <Sidebar active={sidebar} mode="narrow">
