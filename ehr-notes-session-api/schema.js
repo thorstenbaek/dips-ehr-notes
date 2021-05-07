@@ -12,6 +12,7 @@ const typeDefs = `
     document: String
     identifier: String!
     users: [User]
+    robot: Robot
     color: String
   }
 
@@ -25,6 +26,16 @@ const typeDefs = `
     id: String!
     instance: String!
     color: String!
+  }
+
+  type Entity {
+    word: String!
+    index: Int!
+  }
+
+  type Robot {
+    name: String!
+    entities: [Entity]
   }
   
   input ChangeInput {
@@ -52,7 +63,7 @@ const typeDefs = `
     instance: String!
     start: Int!
     end: Int
-  }
+  }  
 
   type Mutation {
     createSession(id: String!, document: String!, user: UserInput!): Session
@@ -68,6 +79,7 @@ const typeDefs = `
     sessionDeleted(id: String!): Session
     documentChanged(id: String!): Change    
     selectionChanged(id: String!): Selection
+    entitiesChanged(id: String!): Robot
   }`;
 
 export default typeDefs;

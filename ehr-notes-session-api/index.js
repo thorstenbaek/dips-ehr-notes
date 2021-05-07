@@ -6,13 +6,14 @@ import typeDefs from "./schema.js";
 import sessionResolvers from "./sessionResolvers.js";
 import documentResolvers from "./documentResolvers.js";
 import selectionResolvers from "./selectionResolvers.js";
+import {robotResolvers} from "./RobotResolvers.js";
 import SessionManager from './classes/SessionManager.js';
 import { request, gql } from 'graphql-request'
 
 const app = express();
 const port = process.env.PORT || 4000;
 const sessionManager = new SessionManager();
-const resolvers = _.merge({}, sessionResolvers, documentResolvers, selectionResolvers);
+const resolvers = _.merge({}, sessionResolvers, documentResolvers, selectionResolvers, robotResolvers);
 console.log(resolvers);
 
 const server = new ApolloServer(

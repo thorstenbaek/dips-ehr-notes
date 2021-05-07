@@ -1,25 +1,28 @@
-import { writable, readable } from "svelte/store";
+import { readable, writable, derived } from "svelte/store";
 import v4 from "uuid";
 import './SmartOnFhirStore';
 
 export const user = readable(v4());
 export const sidebar = writable(null);
 
-const configurationUrl = "https://raw.githubusercontent.com/thorstenbaek/sandbox-environments/master";
-const ThisSystemName = ".dips-ehr-notes-session-api.";
+const defaultConfigurationUrl = "https://raw.githubusercontent.com/thorstenbaek/sandbox-environments/master";
+const ThisSystemName = ".dips-ehr-notes.";
 
 export const configUrl = readable(null, set => {
-    if (window.CONFIG_URL === "${CONFIG_URL}") {
-    	// CONFIG_URL not resolved - using default
-	    set(configurationUrl);	
+    if (window.CONFIG_URL && window.CONFIG_URL != "${CONFIG_URL}") {
+        console.log("Using env var", window.CONFIG_URL)
+        set(window.CONFIG_URL);        
     } else {
-        set(window.CONFIG_URL);
+        // CONFIG_URL not resolved - using default
+        console.log("CONFIG_URL not set. Using default config url:", defaultConfigurationUrl)
+        set(defaultConfigurationUrl);	
     }
 });
 
 function findDomain() {
     const name = window.location.hostname;
-    
+    console.log("HostName", window.location.hostname);
+
     const index = name.lastIndexOf(ThisSystemName);
     var domainName = name;
     
@@ -53,7 +56,7 @@ async function parseSettings(response) {
         text = text.replaceAll("RELEASE-NAME", environmentName);
         const domain = findDomain();
         text = text.replaceAll("DOMAIN", domain);
-
+        console.log(`ConfigurationText: ${text}`);
         return JSON.parse(text)
     } else {
         // no variables in text - using 
@@ -61,13 +64,12 @@ async function parseSettings(response) {
     }
 }
 
-export const settings = readable(
-    null, 
-    async set => {
+export const settings = derived(
+    configUrl, 
+    async ($configUrl, set) => {
         let response;
         try {
-            const configUrl = configurationUrl + "/dips-ehr-notes.json";
-            response = await fetch(configUrl);
+            response = await fetch(`${$configUrl}/dips-ehr-notes.json`);
         } catch (error) {
             console.error("Configuration not found", error);
         }
