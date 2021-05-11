@@ -10,8 +10,10 @@
     import Sidebar from "./Sidebar.svelte";
     import Session from "./Session.svelte";    
     import Avatars from "./Avatars.svelte";
+    import Robots from "./Robots.svelte";
     import {changeDocument, session, instance, subscribeForDocumentChanges, changeSelection, subscribeForSelectionChanges} from "../SessionsStore";  
     import OtClient from "../OtClient";  
+    import EntitiesClient from "../EntitiesClient";
 
     export let document = null;
     
@@ -22,6 +24,9 @@
     let editor = new Editor();        
     let avatars = {};    
     let otClient = null;
+    let entities = [];
+
+    const entitiesClient = new EntitiesClient(this);
 
     editor.on("change", event => {            
         if (!isUpdating && event != null && event.change != null) {                        
@@ -74,6 +79,7 @@
     })
 
     function onSessionClosed() {
+        entitiesClient.unsubscribe();
         // reset selection
         const change = {
             selection: [0, 0]
@@ -96,11 +102,16 @@
         }
     }
 
+    function onEntitiesChanged(data) {
+        entities = data?.entities;
+    }
+
     $:{        
         if (document != null) {                    
             editor.setHTML(marked(document.markdown));                            
             subscribeForDocumentChanges(onChanged, document.id);
             subscribeForSelectionChanges(onSelectionChanged, document.id);
+            entitiesClient.subscribe(document.id, onEntitiesChanged);
         }
         else {
             editor.setText(null);
@@ -126,6 +137,7 @@
                         <div class="canvas">
                             <Canvas width={width} height={height}>
                                 <Avatars {editor} {avatars} users={$session?.users}/> 
+                                <Robots {editor} {entities} />
                             </Canvas>                        
                         </div>
                         <Sidebar active={sidebar} mode="narrow">
