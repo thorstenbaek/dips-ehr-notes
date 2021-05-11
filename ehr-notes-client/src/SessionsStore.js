@@ -125,6 +125,8 @@ function deleteSession() {
         sessionChangedUnsubscriber();
     if (documentChangedUnsubscriber != null)
         documentChangedUnsubscriber();
+    if (selectionChangedUnsubscriber != null)
+        selectionChangedUnsubscriber();
 }
 
 function subscribeForSessionChanges(id) {
