@@ -6,7 +6,7 @@ const sleepInterval = 1000;
 export default class Robot {
 
     constructor(session) {
-        this.name = "Some robot"        
+        this.name = "Regexp robot"        
         this.session = session;
         this.dirty = true;
         this.entities = [];
