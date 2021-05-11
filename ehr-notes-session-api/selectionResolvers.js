@@ -6,7 +6,6 @@ pubsub.ee.setMaxListeners(30);
 var selectionResolvers = {
     Mutation: {
         changeSelection: (_, args, {dataSources}) => {    
-            console.log("ChangeSelection", args);        
             var session = dataSources.sessionManager.getById(args.selection.id);            
             if (session) {
                 pubsub.publish(["SELECTION_CHANGED"], {                

@@ -12,8 +12,6 @@ $:  {
 		initSessions();
 	}
 }
-	
-
 </script>
 
 {#if $settings}

@@ -1,23 +1,28 @@
 import Delta from "quill-delta";
+import toPlaintext from 'quill-delta-to-plaintext';
 import { v4 } from "uuid";
+import Robot from "./Robot.js";
 
 export class Session {
     #deltaDoc;
 
-    
-
     constructor(id, document, user) {
+        console.log("ctor Session");
         this.id = id,
         this.#deltaDoc = new Delta(JSON.parse(document));        
         this.colors = ["#ebac23", "#b80058", "#008cf9", "#006e00", "#00bbad", "#d163e6", "#b24502", "#ff9287", "#5954d6", "#00c6f8"];
         user.color = this.colors[0];
         this.users = [user];
+        this.robot = new Robot(this);
         this.identifier = v4();
         this.deltas = [];
     }
 
+    deltaDocument = () => {
+        return this.#deltaDoc;
+    }
+
     document = () => {
-        console.log(this.#deltaDoc);
         return JSON.stringify(this.#deltaDoc);
     }
 
@@ -26,6 +31,8 @@ export class Session {
     }
 
     change(version, delta) {
+        console.log("change")
+
         if (version < 0 || this.deltas.length < version) {
             throw new Error("given delta version not in history");
         }
@@ -34,7 +41,7 @@ export class Session {
         // delta ...
         var concurrentDeltas = this.deltas.slice(version);        
 
-        var recievedDelta = new Delta(JSON.parse(delta));
+        var recievedDelta = new Delta(JSON.parse(delta));        
 
         // ... and transform the delta against all these deltas ...
         for (var i = 0; i < concurrentDeltas.length; i++) {
@@ -44,6 +51,7 @@ export class Session {
 
         // ... and apply that on the document
         this.#deltaDoc = this.#deltaDoc.compose(recievedDelta);
+        this.robot.update();
 
         // Store delta in history.
         this.deltas.push(recievedDelta);
@@ -51,6 +59,10 @@ export class Session {
         // It's the caller's responsibility to send the delta to all connected
         // clients and an acknowledgement to the creator.
         return recievedDelta;
+    }
+
+    getText() {
+        return toPlaintext(this.#deltaDoc);
     }
 
     addUser(user) {
