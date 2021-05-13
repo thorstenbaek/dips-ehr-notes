@@ -18,6 +18,7 @@ export default class EntitiesClient {
                 name
                 entities {
                     word
+                    color
                     index
                 }}}`;
 

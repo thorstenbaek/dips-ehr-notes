@@ -1,7 +1,6 @@
 <script>
     import { Delta, Editor } from "typewriter-editor";
     import { Canvas } from "svelte-canvas";
-    import { v4 } from "uuid";
     import marked from 'marked'
     //Consider changing to this package supporting two way md-conversion: https://github.com/showdownjs/showdown
     //import Root from "typewriter-editor/lib/Root.svelte";    
@@ -11,6 +10,7 @@
     import Session from "./Session.svelte";    
     import Avatars from "./Avatars.svelte";
     import Robots from "./Robots.svelte";
+    import Background from "./Background.svelte";
     import {changeDocument, session, instance, subscribeForDocumentChanges, changeSelection, subscribeForSelectionChanges} from "../SessionsStore";  
     import OtClient from "../OtClient";  
     import EntitiesClient from "../EntitiesClient";
@@ -18,13 +18,37 @@
     export let document = null;
     
     let sidebar = false;            
-    let selection = [];
     let isUpdating = false;
-    let height, width;
     let editor = new Editor();        
     let avatars = {};    
     let otClient = null;
-    let entities = [];
+    let windowHeight, windowWidth;
+    let canvasElement;    
+    let overlayHeight;
+    let overlayWidth;
+    let contentElement = null;
+    let scrollTop;
+    let editorTop;
+    let contentWidth, contentHeight;
+    let robots = {
+        "Regexp robot": { entities: []},
+        "Starts with s robot": {entities: []}
+    };
+
+    $: contentScrollWidth = windowWidth - contentWidth;
+    $: canvasWidth = overlayWidth > contentWidth ? overlayWidth : contentWidth;
+    $: canvasHeight = overlayHeight > contentHeight ? overlayHeight : contentHeight;
+
+    $: if(!scrollTop && contentElement != null) {
+        scrollTop = 0;
+        contentElement.addEventListener('scroll', ({ target }) => (scrollTop = target.scrollTop));                    
+    }
+
+    $: {
+        if (scrollTop > 0) {
+            canvasElement?.redraw();            
+        }        
+    }
 
     const entitiesClient = new EntitiesClient(this);
 
@@ -102,8 +126,12 @@
         }
     }
 
-    function onEntitiesChanged(data) {
-        entities = data?.entities;
+    function onEntitiesChanged(data) {        
+        if (data) {
+            robots[data.name] = {
+                entities: data.entities,
+                color: data.color }
+        }        
     }
 
     $:{        
@@ -111,7 +139,7 @@
             editor.setHTML(marked(document.markdown));                            
             subscribeForDocumentChanges(onChanged, document.id);
             subscribeForSelectionChanges(onSelectionChanged, document.id);
-            entitiesClient.subscribe(document.id, onEntitiesChanged);
+            entitiesClient.subscribe(document.id, onEntitiesChanged);                        
         }
         else {
             editor.setText(null);
@@ -121,58 +149,62 @@
     function toggleSidebar()
     {
         sidebar = !sidebar;
+        canvasElement?.redraw();
     }   
     
-</script>
-    <svelte:window bind:innerHeight={height} bind:innerWidth={width}/>
-    {#if document}
-        <Session id={document.id} editor={editor} on:onSessionClosed={onSessionClosed}>
-            <p>{document.id}</p>
+</script>      
+    <svelte:window bind:innerHeight={windowHeight} bind:innerWidth={windowWidth}/>
+    {#if document}        
+        <div class="header" bind:clientHeight={editorTop}>           
+            <Session id={document.id} editor={editor} on:onSessionClosed={onSessionClosed}/>    
             <Toolbar editor={editor} 
                     sidebar={sidebar} 
                 on:toggleSidebar={toggleSidebar}/>            
-                <div class="scroll">
-                    <div class="container">
-                        <div use:asRoot={editor} class="editor" spellcheck="false" />
-                        <div class="canvas">
-                            <Canvas width={width} height={height}>
-                                <Avatars {editor} {avatars} users={$session?.users}/> 
-                                <Robots {editor} {entities} />
-                            </Canvas>                        
-                        </div>
-                        <Sidebar active={sidebar} mode="narrow">
-                        </Sidebar>
-                    </div>
-                </div> 
-                <div class="statusBar">
-                    {selection} 
-                </div>                    
-        </Session>
+        </div>
+        <div class="scroll" bind:this={contentElement} bind:clientWidth={contentWidth} bind:clientHeight={contentHeight} style="--editor-top: {editorTop}px">
+            <div class="content" >
+                <div class="editor" use:asRoot={editor} spellcheck="false"/>
+                {#if sidebar}
+                    <div class="sidebar"/>
+                {/if}
+            </div>
+        </div>
+        <div class="overlay" bind:clientHeight={overlayHeight} bind:clientWidth="{overlayWidth}" style="--editor-top: {editorTop}px; --content-right: {contentScrollWidth}px">
+            <Canvas width={canvasWidth} height={canvasHeight} bind:this={canvasElement} >                
+                <!-- <Background/> -->
+                <Avatars {editorTop} {editor} {avatars} users={$session?.users}/> 
+                <Robots {editorTop} {editor} {robots}/>
+            </Canvas>
+        </div>     
     {/if}
-<style> 
-    .statusBar {
-        height: 25px;
-        background: #ededed;
+<style>     
+
+    .header {
+        position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;		
     }
 
-    .scroll {    
-        overflow: auto;        
-        height: calc(100% - 98px);
+    .scroll {
+        position: fixed;
+        top: var(--editor-top);
+		bottom: 0;
+		left: 0;
+		right: 0;
+        overflow: auto;
     }
 
-    .container {    
-        overflow: hidden;
-        height: 100%;
-        width: 100%;
-        display: table;    
-    }    
-
+    .content {            
+        display: table;		
+    }
+    
     .editor {
+        display: table-cell;
         padding: 25px 12px;
         border: none;
-        height: calc(100% - 50px);     
-        background: white;            
-    }    
+        background: white;
+    }
 
     .editor:active {
         border: none;
@@ -180,14 +212,22 @@
   
     .editor:focus {
         border: none;
-    }   
+    } 
+
+    .sidebar {
+        display: table-cell;
+        width: 200px;                
+        background: lightgray;
+    }  
     
-    .canvas {
+    .overlay {
         position: absolute;
-        left: 0px;
-        top: 0px;                
-        color: rgba(125, 0, 0, 0.25);
+        top: var(--editor-top);
+        left: 0;
+        right: var(--content-right);
+        bottom: 0;
         background: transparent;        
         pointer-events: none;
+        overflow: none;
     } 
 </style>

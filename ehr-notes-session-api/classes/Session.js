@@ -1,7 +1,7 @@
 import Delta from "quill-delta";
 import toPlaintext from 'quill-delta-to-plaintext';
 import { v4 } from "uuid";
-import Robot from "./Robot.js";
+import RobotManager from "./RobotManager.js";
 
 export class Session {
     #deltaDoc;
@@ -13,7 +13,7 @@ export class Session {
         this.colors = ["#ebac23", "#b80058", "#008cf9", "#006e00", "#00bbad", "#d163e6", "#b24502", "#ff9287", "#5954d6", "#00c6f8"];
         user.color = this.colors[0];
         this.users = [user];
-        this.robot = new Robot(this);
+        this.robotManager = new RobotManager(this);
         this.identifier = v4();
         this.deltas = [];
     }
@@ -26,7 +26,7 @@ export class Session {
         return JSON.stringify(this.#deltaDoc);
     }
 
-    version = () => {
+    version = () => {   
         return this.deltas.length;
     }
 
@@ -51,7 +51,7 @@ export class Session {
 
         // ... and apply that on the document
         this.#deltaDoc = this.#deltaDoc.compose(recievedDelta);
-        this.robot.update();
+        this.robotManager.update();
 
         // Store delta in history.
         this.deltas.push(recievedDelta);

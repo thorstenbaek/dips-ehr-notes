@@ -1,34 +1,25 @@
 <script>
-
     import {Layer} from "svelte-canvas";
 
+    export let editorTop;
     export let editor;
-    export let entities;
+    export let robots;
         
     $: render = ({ context, width, height}) => {
-        
-        
+        context.globalAlpha = 0.25;                 
 
-        if (editor && entities?.length > 0) {
-            entities.map(entity => {
-                var r = editor.getBounds([entity.index, entity.index + entity.word.length]);
-                context.fillStyle = "#ff0000";                           
-                context.globalAlpha = 0.5;                 
-                //console.log("rect", r);    
-                context.fillRect(r.x, r.y, r.width, r.height);           
-            });
-            
-            /*var rects = editor.getAllBounds([0, 9]);
-            console.log("rects", rects);
-            for(var i = 0; i < rects.length; i++) {
-                    const r = rects[i];
-
-                    context.fillStyle = "#ff0000";                           
-                    context.globalAlpha = 0.5;                 
-                    context.fillRect(r.x, r.y, r.width, r.height);                                      
-                }*/
+        if (editor && robots) {
+            console.log(robots);
+            for(const [key, value] of Object.entries(robots)) {            
+                console.log(value);
+                value.entities.map(entity => {
+                    var r = editor.getBounds([entity.index, entity.index + entity.word.length]);      
+                    context.fillStyle = entity.color;                                                   
+                    context.fillRect(r.x, r.y - editorTop, r.width, r.height);           
+                    
+                });
+            };
         }
     }
 </script>
-
 <Layer {render}/>
