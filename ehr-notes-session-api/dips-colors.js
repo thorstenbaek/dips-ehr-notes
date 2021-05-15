@@ -1,22 +1,26 @@
-export const dips_red = "#cd3925";
-export const dips_blue = "#06082d";
-/*    "#e9ecef", //lightestGray
-    "#d4d7d9", //lighterGray
-    "#7a7e82", //gray
-    "#3c3f42", //darkGray
-    "#d9ecf0", //lightestBlue
-    "#b4dee5", //lighterBlue
-    "#558c9f", //blue 
-    "#1b4b5c", //darkBlue
-    "#d9efe5", //lightestColdGreen
-    "#b5e4d5", //lighterColdGreen
-    "#579c8e", //coldgreen
-    "#1c545c", //darkColdgreen
-    "#fdedcb", //lightestOrange
-    "#f7cca4", //lighterOrange
-    "#df6f35", //orange
-    "#ad4219", //darkOrange
-    "#d5e8cb", //lightestWarmgreen
-    "#bce3b0", //lighterWarmgreen
-    "#60975d", //warmgreen
-    "#225628", //darkWarmgreen*/
+const dipsColors = {
+    dips_red: "#cd3925",
+    dips_blue: "#06082d",
+    lightest_gray: "#e9ecef",
+    lighter_gray: "#d4d7d9",
+    gray: "#7a7e82",
+    dark_gray: "#3c3f42",
+    lightest_blue: "#d9ecf0",
+    lighter_blue: "#b4dee5",
+    blue: "#558c9f",
+    dark_blue: "#1b4b5c",
+    lightest_cold_green: "#d9efe5",
+    lighter_cold_green: "#b5e4d5",
+    cold_green: "#579c8e",
+    dark_cold_green: "#1c545c",
+    lightest_orange: "#fdedcb",
+    lighter_orange: "#f7cca4",
+    orange: "#df6f35", 
+    dark_orange: "#ad4219",
+    lightest_warm_green: "#d5e8cb",
+    lighter_warm_green: "#bce3b0",
+    warm_green: "#60975d",
+    dark_warm_green: "#225628",
+};
+
+export default dipsColors;

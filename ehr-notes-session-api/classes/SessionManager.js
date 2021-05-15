@@ -1,8 +1,12 @@
+import RobotManager from "./RobotManager.js";
 import {Session} from "./Session.js";
 
 var _sessions = [];
 
 class SessionManager {                
+    constructor() {
+    }
+
     all() {
         return _sessions;
     }

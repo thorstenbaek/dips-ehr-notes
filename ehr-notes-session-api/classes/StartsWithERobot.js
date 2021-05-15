@@ -1,11 +1,11 @@
-import * as colors from "../dips-colors.js";
+import dipsColors from "../dips-colors.js";
 import Robot from "./Robot.js";
 
 export default class StartsWithERobot extends Robot {
 
     constructor(session) {
         super(session);
-        this.color = colors.dips_blue;
+        this.color = dipsColors.dips_blue;
         this.name = "Starts with e robot"        
     }
 
