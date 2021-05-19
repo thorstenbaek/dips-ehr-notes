@@ -1,5 +1,6 @@
 import {pubsub} from "../RobotResolvers.js";
 import NorMedTermRobot from "./NorMedTermRobot.js";
+import DipsAskRobot from "./DipsAskRobot.js";
 import StartsWithERobot from "./StartsWithERobot.js";
 import StartsWithSRobot from "./StartsWithSRobot.js";
 
@@ -11,9 +12,10 @@ export default class RobotManager {
         this.session = session;
         this.dirty = true;
         this.robots = [];
-        this.robots.push(new StartsWithERobot(session));
-        this.robots.push(new StartsWithSRobot(session));
-        this.robots.push(new NorMedTermRobot(session));
+        //this.robots.push(new StartsWithERobot(session));        
+        //this.robots.push(new StartsWithSRobot(session));
+        //this.robots.push(new NorMedTermRobot(session));
+        this.robots.push(new DipsAskRobot(session));
         
         setInterval(async () => {
             if (this.dirty) {                
