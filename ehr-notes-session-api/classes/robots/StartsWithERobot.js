@@ -3,8 +3,8 @@ import Robot from "./Robot.js";
 
 export default class StartsWithERobot extends Robot {
 
-    constructor() {
-        super();
+    constructor(enabled) {
+        super(enabled);
         this.color = dipsColors.dips_blue;
         this.name = "Starts with e robot"        
     }

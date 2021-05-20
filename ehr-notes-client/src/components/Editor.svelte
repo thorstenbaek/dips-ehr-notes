@@ -7,6 +7,7 @@
     import asRoot from "typewriter-editor/lib/asRoot";
     import Toolbar from "./Toolbar.svelte";            
     import Sidebar from "./Sidebar.svelte";
+    import Settings from "./Settings.svelte";
     import Session from "./Session.svelte";    
     import Avatars from "./Avatars.svelte";
     import Robots from "./Robots.svelte";
@@ -17,7 +18,8 @@
 
     export let document = null;
     
-    let sidebar = false;            
+    let sidebar = false;   
+    let settings = true;         
     let isUpdating = false;
     let editor = new Editor();        
     let avatars = {};    
@@ -30,11 +32,7 @@
     let scrollTop;
     let editorTop;
     let contentWidth, contentHeight;
-    let robots = {
-        "Regexp robot": { entities: []},
-        "Starts with s robot": {entities: []}
-    };
-
+    let robots = {}; 
     $: contentScrollWidth = windowWidth - contentWidth;
     $: canvasWidth = overlayWidth > contentWidth ? overlayWidth : contentWidth;
     $: canvasHeight = overlayHeight > contentHeight ? overlayHeight : contentHeight;
@@ -128,6 +126,7 @@
 
     function onEntitiesChanged(data) {        
         if (data) {
+            console.log("entities changed", data)
             robots[data.name] = {
                 entities: data.entities,
                 color: data.color }
@@ -146,27 +145,41 @@
         }        
     }
 
-    function toggleSidebar()
-    {
+    function toggleSidebar() {
         sidebar = !sidebar;
+        settings = false;
         canvasElement?.redraw();
     }   
+
+    function toggleSettings() {
+       settings = !settings; 
+       sidebar = false;
+       canvasElement?.redraw();
+    }
     
 </script>      
     <svelte:window bind:innerHeight={windowHeight} bind:innerWidth={windowWidth}/>
-    {#if document}        
+    {#if document}       
+        <p>{document.id}</p>
+    
         <div class="header" bind:clientHeight={editorTop}>           
             <Session id={document.id} editor={editor} on:onSessionClosed={onSessionClosed}/>    
-            <Toolbar editor={editor} 
-                    sidebar={sidebar} 
-                on:toggleSidebar={toggleSidebar}/>            
+            <Toolbar {editor} {sidebar} {settings}
+                on:toggleSidebar={toggleSidebar}
+                on:toggleSettings={toggleSettings}/>            
         </div>
         <div class="scroll" bind:this={contentElement} bind:clientWidth={contentWidth} bind:clientHeight={contentHeight} style="--editor-top: {editorTop}px">
             <div class="content" >
                 <div class="editor" use:asRoot={editor} spellcheck="false"/>
                 {#if sidebar}
-                    <div class="sidebar"/>
-                {/if}
+                    <div class="sidepanel">
+                        <Sidebar/>
+                    </div>
+                {:else if settings}
+                    <div class="sidepanel">
+                        <Settings/>
+                    </div>
+                {/if}                
             </div>
         </div>
         <div class="overlay" bind:clientHeight={overlayHeight} bind:clientWidth="{overlayWidth}" style="--editor-top: {editorTop}px; --content-right: {contentScrollWidth}px">
@@ -214,7 +227,7 @@
         border: none;
     } 
 
-    .sidebar {
+    .sidepanel {
         display: table-cell;
         width: 200px;                
         background: lightgray;

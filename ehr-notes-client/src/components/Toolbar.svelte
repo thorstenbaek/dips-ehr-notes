@@ -3,6 +3,7 @@
   import { createEventDispatcher } from 'svelte';
 
   export let editor;
+  export let settings;
   export let sidebar;
 
   const dispatch = createEventDispatcher();
@@ -10,7 +11,8 @@
 </script>
 
 <Toolbar {editor} let:active let:commands>
-    <div class="toolbar">
+  <div class="toolbar-container">
+    <div class="toolbar left">
         <button
           class="toolbar-button material-icons"
           title="Heading 2"
@@ -45,8 +47,7 @@
           class="toolbar-button material-icons"
           title="Italic"
           class:active={active.italic}
-          on:click={commands.italic}>format_italic</button>                
-        &nbsp;&nbsp;&nbsp;
+          on:click={commands.italic}>format_italic</button>                    
         <button
           class="toolbar-button material-icons"
           title="Undo"
@@ -58,26 +59,45 @@
           title="Redo"
           disabled={!active.redo}
           on:click={commands.redo}>redo</button>
+        
+      </div>
+      <div class="toolbar right">
         <button
           class="toolbar-button material-icons"
           class:active={sidebar}
           on:click={() => dispatch("toggleSidebar")}>view_sidebar
         </button>
-        <button
-          class="toolbar-button material-icons"
-          on:click={() => dispatch("createRange")}>S
+        <button class="toolbar-button material-icons"
+          class:active={settings}
+          on:click={() => dispatch("toggleSettings")}>settings
         </button>
       </div>
-</Toolbar>
+    </div>
+  </Toolbar>
+
 
 <style>
-    .toolbar {      
-      display: flex;      
-      width: calc(100% - 16px);
+    .toolbar-container {      
       height: 30px;
       background: #ededed;
       padding:8px;
+      clear:both;
     }
+
+    .toolbar {      
+      display: flex;
+    }
+    
+    .left {
+      float: left;
+      text-align: left;
+    }
+
+    .right {
+      float: right;
+      text-align: right;
+    }
+
     .toolbar-button {
       display: flex;      
       align-items: center;

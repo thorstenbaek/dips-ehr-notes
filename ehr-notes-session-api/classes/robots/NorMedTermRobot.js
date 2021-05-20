@@ -5,8 +5,8 @@ import Robot from "./Robot.js";
 const normedtermurl = "http://localhost:8989/api/check";
 
 export default class NorMedTermRobot extends Robot {
-    constructor() {
-        super();
+    constructor(enabled) {
+        super(enabled);
         this.color = dipsColors.cold_green;
         this.name = "NorMedTerm";
     }

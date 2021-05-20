@@ -27,6 +27,9 @@ let documentChangedUnsubscriber;
 let changeSelectionMutation;
 let selectionChangedSubscription;
 let selectionChangedUnsubscriber;
+
+let disableRobotMutation;
+let enableRobotMutation;
         
 const init = () => {
     urlBuilder = new UrlBuilder(get(settings).SessionsApiUrl);
@@ -71,6 +74,10 @@ const init = () => {
                 instance
                 color        
             }
+            robots {
+                name
+                enabled 
+            }
         }
     }`;
     createSessionMutation = mutation(CREATESESSION_MUTATION);        
@@ -91,7 +98,48 @@ const init = () => {
             }
         }`;
     changeSelectionMutation = mutation(CHANGESELECTION_MUTATION);
-};
+
+    const DISABLE_ROBOT_MUTATION = gql`
+        mutation($session: String!, $name: String!){
+            disableRobot(session:$session, name:$name){
+                name
+            }
+        }`;
+
+    disableRobotMutation = mutation(DISABLE_ROBOT_MUTATION);
+
+    const ENABLE_ROBOT_MUTATION = gql`
+        mutation($session: String!, $name: String!){
+            enableRobot(session:$session, name:$name){
+                name
+            }
+        }`;
+
+    enableRobotMutation = mutation(ENABLE_ROBOT_MUTATION);
+}
+
+async function enableRobot(session, name) {
+    var result = await enableRobotMutation({
+        variables: {
+            session,
+            name
+        }
+    })
+    
+    console.log(result.data);
+}
+
+async function disableRobot(session, name) {
+    var result = await disableRobotMutation({
+        variables: {
+            session,
+            name
+        }
+    })
+    
+    console.log(result.data);
+}
+
 
 function getUniqueUserId()
 {
@@ -109,6 +157,7 @@ async function createSession(id, document) {
                 color: "#4CAF50" }
     }})
     
+    console.log(result.data.createSession);
     session.set(result.data.createSession);        
 }
 
@@ -133,7 +182,7 @@ function subscribeForSessionChanges(id) {
     const SESSIONCHANGED_SUBSCRIPTION = gql`
     subscription($id:String!) {
         sessionChanged(id:$id) {
-            id, version, users { id, instance, color }
+            id, version, users { id, instance, color }, robots { name, enabled }
         }
     }`;       
     
@@ -222,4 +271,6 @@ async function changeSelection(id, instance, selection) {
 }
 
 
-export {init as initSessions, createSession, deleteSession, subscribeForSessionChanges, changeDocument, subscribeForDocumentChanges, changeSelection, subscribeForSelectionChanges};
+export {init as initSessions, createSession, deleteSession, subscribeForSessionChanges, 
+        changeDocument, subscribeForDocumentChanges, changeSelection, subscribeForSelectionChanges,
+        disableRobot, enableRobot};

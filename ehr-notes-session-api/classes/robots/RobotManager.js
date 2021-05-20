@@ -6,10 +6,10 @@ import StartsWithSRobot from "./StartsWithSRobot.js";
 export default class RobotManager {
     constructor() {
         this.robotDefinitions = {
-            "Starts with E": () => new StartsWithERobot(),
-            "Starts with S": () => new StartsWithSRobot(),
-            "DIPS Ask": () => new DipsAskRobot(),
-            "NorMedTerm": () => new NorMedTermRobot()
+            "Starts with e robot": () => new StartsWithERobot(false),
+            "Starts with s robot": () => new StartsWithSRobot(false),
+            "DIPS Ask": () => new DipsAskRobot(true),
+            "NorMedTerm": () => new NorMedTermRobot(false)
         }
 
     }

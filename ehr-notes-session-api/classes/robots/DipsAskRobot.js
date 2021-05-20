@@ -5,8 +5,8 @@ import Robot from "./Robot.js";
 const dipsAskUrl = "http://vp-ala04:8888/ent";
 
 export default class DipsAskRobot extends Robot {
-    constructor() {
-        super();
+    constructor(enabled) {
+        super(enabled);
         this.color = dipsColors.orange;
         this.name = "DIPS Ask";
     }
@@ -29,8 +29,7 @@ export default class DipsAskRobot extends Robot {
             
             
             var values = [];
-            const results = await response.json();
-            console.log(results);
+            const results = await response.json();            
             results.map(result => {
                 values.push(
                 {

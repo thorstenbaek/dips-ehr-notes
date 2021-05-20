@@ -1,6 +1,8 @@
 import Delta from "quill-delta";
 import toPlaintext from 'quill-delta-to-plaintext';
 import { v4 } from "uuid";
+import NorMedTermRobot from "./robots/NorMedTermRobot.js";
+import DipsAskRobot from "./robots/DipsAskRobot.js";
 
 export class Session {
     #deltaDoc;
@@ -58,6 +60,18 @@ export class Session {
         // It's the caller's responsibility to send the delta to all connected
         // clients and an acknowledgement to the creator.
         return recievedDelta;
+    }
+
+    enableRobot(name) {
+        this.robotSession.setRobotEnabled(name, true);
+    }
+
+    disableRobot(name) {
+        this.robotSession.setRobotEnabled(name, false);
+    }
+
+    robots = () => {
+        return this.robotSession.robots;
     }
 
     clear() {

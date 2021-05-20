@@ -1,7 +1,7 @@
 export default class Robot {
 
-    constructor() {
-        this.active = true;
+    constructor(enabled) {
+        this.enabled = enabled;
     }
 
     process(text) {

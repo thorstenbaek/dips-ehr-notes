@@ -12,7 +12,7 @@ const typeDefs = `
     document: String
     identifier: String!
     users: [User]
-    robot: Robot
+    robots: [Robot]
     color: String
   }
 
@@ -34,9 +34,20 @@ const typeDefs = `
     index: Int!
   }
 
+  type RobotResult {
+    name: String!   
+    entities: [Entity] 
+    enabled: Boolean
+  }
+
   type Robot {
+    name: String!   
+    enabled: Boolean
+  }
+
+  input RobotInput {
     name: String!
-    entities: [Entity]
+    enabled: Boolean
   }
   
   input ChangeInput {
@@ -72,6 +83,8 @@ const typeDefs = `
     flushSessions: String
     changeDocument(change: ChangeInput!): Change       
     changeSelection(selection: SelectionInput!): Selection
+    enableRobot(session: String!, name: String!): Robot
+    disableRobot(session: String!, name: String!): Robot
   }
 
   type Subscription {
@@ -80,7 +93,7 @@ const typeDefs = `
     sessionDeleted(id: String!): Session
     documentChanged(id: String!): Change    
     selectionChanged(id: String!): Selection
-    entitiesChanged(id: String!): Robot
+    entitiesChanged(id: String!): RobotResult
   }`;
 
 export default typeDefs;

@@ -10,37 +10,49 @@ export default class RobotSession {
         this.robots = robots;
 
         this.intervalId = setInterval(async () => {
-            try {   
-                console.log("interval");
-                
-                if (this.dirty && robots.length > 0) {                                    
-                    
-                    var activeRobots = this.robots.filter(r => r.active);
-                    var results = await Promise.all(activeRobots.map(r => r.process(session.getText())));
-                    
-                    for(var i = 0; i < results.length; i++) {
-                        console.log(results[i]);
+            try {                  
+                if (this.dirty && robots.length > 0) {                                                        
+                    var filteredRobots = this.robots.filter(r => r.enabled);
+                    var results = await Promise.all(filteredRobots.map(
+                        r => r.process(session.getText())));
 
-                        pubsub.publish("ENTITIES_CHANGED", {
-                            entitiesChanged: {
-                                id: this.session.id,                            
-                                name: this.robots[i].name,
-                                entities: results[i]
-                            }});
-                    }
+                    if (results.length > 0) {
+                        for(var i = 0; i < results.length; i++) {
+                            this.publish(this.session.id, filteredRobots[i].name, results[i]);                            
+                        }                            
+                    } 
                     
                     this.dirty = false;
                 }
             } catch {
 
             }
-        }, sleepInterval);
+        }, sleepInterval);        
     }
+
+    publish(id, name, entities) {        
+        pubsub.publish("ENTITIES_CHANGED", {
+            entitiesChanged: {id, name, entities}});
+    }                            
+    
 
     update() {
         this.dirty = true;
     }
 
+    setRobotEnabled(name, value) {
+        var r = this.robots.filter(r => r.name === name);
+        if (r.length > 0) {
+            r[0].enabled = value;            
+                        
+            if (!value) {                 
+                this.publish(this.session.id, r[0].name, []);
+            } else {
+                this.update();
+            }
+        }
+    }
+ 
     clear() {
         clearInterval(this.intervalId);
     }

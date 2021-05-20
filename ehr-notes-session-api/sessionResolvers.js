@@ -24,7 +24,6 @@ var sessionResolvers = {
                 sessionCreated: result.session}); 
             }
             else { 
-              console.log(result.session);           
               pubsub.publish(["SESSION_CHANGED"], {                
                 sessionChanged: result.session});     
             }
@@ -61,7 +60,25 @@ var sessionResolvers = {
               sessionDeleted: s                           
             });
           });
-        },             
+        },    
+        disableRobot: (_, args, {dataSources}) => {          
+          var session = dataSources.sessionManager.getById(args.session);    
+          if (session != null) {      
+            session.disableRobot(args.name);
+            pubsub.publish(["SESSION_CHANGED"], {
+              sessionChanged: session
+            });
+          }
+        },
+        enableRobot: (_, args, {dataSources}) => {
+          var session = dataSources.sessionManager.getById(args.session);    
+          if (session != null) {      
+            session.enableRobot(args.name);
+            pubsub.publish(["SESSION_CHANGED"], {
+              sessionChanged: session
+            });
+          }
+        }         
     },
 
     Subscription: {        
