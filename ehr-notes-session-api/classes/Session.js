@@ -1,19 +1,18 @@
 import Delta from "quill-delta";
 import toPlaintext from 'quill-delta-to-plaintext';
 import { v4 } from "uuid";
-import RobotManager from "./RobotManager.js";
 
 export class Session {
     #deltaDoc;
 
-    constructor(id, document, user) {
+    constructor(id, document, user, robotFactory) {
         console.log("ctor Session");
         this.id = id,
         this.#deltaDoc = new Delta(JSON.parse(document));        
         this.colors = ["#ebac23", "#b80058", "#008cf9", "#006e00", "#00bbad", "#d163e6", "#b24502", "#ff9287", "#5954d6", "#00c6f8"];
         user.color = this.colors[0];
         this.users = [user];
-        this.robotManager = new RobotManager(this);
+        this.robotSession = robotFactory.createRobotSession(this);
         this.identifier = v4();
         this.deltas = [];
     }
@@ -51,7 +50,7 @@ export class Session {
 
         // ... and apply that on the document
         this.#deltaDoc = this.#deltaDoc.compose(recievedDelta);
-        this.robotManager.update();
+        this.robotSession.update();
 
         // Store delta in history.
         this.deltas.push(recievedDelta);
@@ -59,6 +58,10 @@ export class Session {
         // It's the caller's responsibility to send the delta to all connected
         // clients and an acknowledgement to the creator.
         return recievedDelta;
+    }
+
+    clear() {
+        this.robotSession.clear();
     }
 
     getText() {

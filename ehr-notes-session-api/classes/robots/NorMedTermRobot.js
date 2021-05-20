@@ -1,19 +1,17 @@
 import fetch from "node-fetch";
-import dipsColors from "../dips-colors.js";
+import dipsColors from "../../dips-colors.js";
 import Robot from "./Robot.js";
 
 const normedtermurl = "http://localhost:8989/api/check";
 
 export default class NorMedTermRobot extends Robot {
-    constructor(session) {
-        super(session);
+    constructor() {
+        super();
         this.color = dipsColors.cold_green;
         this.name = "NorMedTerm";
     }
 
-    async process() {
-        const text = this.session.getText();
-
+    async process(text) {
         const params = new URLSearchParams();
         params.append('text', text);
 

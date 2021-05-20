@@ -1,10 +1,12 @@
-import RobotManager from "./RobotManager.js";
+import RobotFactory from "./robots/RobotFactory.js";
+import RobotManager from "./robots/RobotManager.js";
 import {Session} from "./Session.js";
 
 var _sessions = [];
 
 class SessionManager {                
     constructor() {
+        this.robotFactory = new RobotFactory(new RobotManager());
     }
 
     all() {
@@ -27,7 +29,7 @@ class SessionManager {
             session.addUser(user);
         }
         else {
-            session = new Session(id, document, user);
+            session = new Session(id, document, user, this.robotFactory);
             created = true;
             _sessions.push(session);
         }
@@ -46,6 +48,13 @@ class SessionManager {
             }
             else
             {
+                // Clear session before remove
+                const sessionToRemove = _sessions.filter(s => s.id == session.id);
+                if (sessionToRemove.length > 0)
+                {
+                    sessionToRemove[0].clear();
+                }
+
                 _sessions = _sessions.filter(s => s.id != session.id);
                 deleted = true;
 
