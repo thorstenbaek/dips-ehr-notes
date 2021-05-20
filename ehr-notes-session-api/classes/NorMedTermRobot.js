@@ -17,29 +17,32 @@ export default class NorMedTermRobot extends Robot {
         const params = new URLSearchParams();
         params.append('text', text);
 
-        const response = await fetch(
-            normedtermurl,
-            {
-                method: "post",
-                body: params
-            }); 
-        
-        
-        var values = [];
-        const results = await response.json();
-        results.map(result => {
-            result.index.map(i => {
-                values.push(
+        try {
+            const response = await fetch(
+                normedtermurl,
                 {
-                    word: result.term,
-                    color: this.color,
-                    index: i-1
+                    method: "post",
+                    body: params
+                }); 
+            
+            
+            var values = [];
+            const results = await response.json();
+            results.map(result => {
+                result.index.map(i => {
+                    values.push(
+                    {
+                        word: result.term,
+                        color: this.color,
+                        index: i-1
+                    });
                 });
-            });
-        });       
+            });    
+            
+            return values;
 
-        return new Promise((resolve, reject) => {
-            resolve(values);
-        });
+        } catch (error) {
+            throw error;
+        }                
     }
 }

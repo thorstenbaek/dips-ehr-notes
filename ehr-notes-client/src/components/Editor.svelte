@@ -45,7 +45,7 @@
     }
 
     $: {
-        if (scrollTop > 0) {
+        if (scrollTop >= 0) {
             canvasElement?.redraw();            
         }        
     }

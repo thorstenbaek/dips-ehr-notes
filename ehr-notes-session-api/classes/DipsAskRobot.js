@@ -13,12 +13,10 @@ export default class DipsAskRobot extends Robot {
 
     async process() {
         const text = this.session.getText();
-        const strippedText = text.replace(/(\r\n|\n|\r)/gm, "_");
 
         const params = {
             "corpus": text
         };
-        
 
         const response = await fetch(
             dipsAskUrl,

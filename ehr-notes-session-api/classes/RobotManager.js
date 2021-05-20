@@ -20,20 +20,25 @@ export default class RobotManager {
         setInterval(async () => {
             if (this.dirty) {                
 
-                var results = await Promise.all(this.robots.map(r => r.process()));
+                try {
+                    var results = await Promise.all(this.robots.map(r => r.process()));
 
-                for(var i = 0; i < results.length; i++) {
-                    console.log(results[i]);
+                    for(var i = 0; i < results.length; i++) {
+                        console.log(results[i]);
+    
+                        pubsub.publish("ENTITIES_CHANGED", {
+                            entitiesChanged: {
+                                id: this.session.id,                            
+                                name: this.robots[i].name,
+                                entities: results[i]
+                            }});
+                    }    
 
-                    pubsub.publish("ENTITIES_CHANGED", {
-                        entitiesChanged: {
-                            id: this.session.id,                            
-                            name: this.robots[i].name,
-                            entities: results[i]
-                        }});
+                    this.dirty = false;
+
+                } catch (error) {
+                    console.log(error);                    
                 }
-                
-                this.dirty = false;
             }
         }, sleepInterval);
     }
