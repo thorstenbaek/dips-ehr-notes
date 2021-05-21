@@ -4,7 +4,7 @@ export default class Robot {
         this.enabled = enabled;
     }
 
-    process(text) {
+    async process(text) {
 
     }            
 }

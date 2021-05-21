@@ -9,18 +9,14 @@ export default class RobotSession {
         this.dirty = true;        
         this.robots = robots;
 
-        this.intervalId = setInterval(async () => {
+        this.intervalId = setInterval(() => {
             try {                  
                 if (this.dirty && robots.length > 0) {                                                        
                     var filteredRobots = this.robots.filter(r => r.enabled);
-                    var results = await Promise.all(filteredRobots.map(
-                        r => r.process(session.getText())));
-
-                    if (results.length > 0) {
-                        for(var i = 0; i < results.length; i++) {
-                            this.publish(this.session.id, filteredRobots[i].name, results[i]);                            
-                        }                            
-                    } 
+                    filteredRobots.map(async fr => {
+                        var results = await fr.process(session.getText());                        
+                        this.publish(this.session.id, fr.name, results);                                                    
+                    });                   
                     
                     this.dirty = false;
                 }
