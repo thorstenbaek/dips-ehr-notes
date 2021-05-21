@@ -44,7 +44,6 @@
         </li>
         {/each}
     </ul>
-    <p>{robots}</p>
 {/if}
 
 <style>

@@ -11,7 +11,7 @@ export default class NorMedTermRobot extends Robot {
         this.name = "NorMedTerm";
     }
 
-    async process(text) {
+    async doProcess(text) {
         const params = new URLSearchParams();
         params.append('text', text);
 
@@ -27,12 +27,14 @@ export default class NorMedTermRobot extends Robot {
             var values = [];
             const results = await response.json();
             results.map(result => {
-                result.index.map(i => {
+                console.log(result);
+                result.index.map(i => {                    
                     values.push(
                     {
                         word: result.term,
                         color: this.color,
-                        index: i-1
+                        index: i-1,
+                        label: result.label
                     });
                 });
             });    

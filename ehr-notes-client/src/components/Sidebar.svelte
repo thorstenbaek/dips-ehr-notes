@@ -1,33 +1,17 @@
-<script> 
-    export let active = false;
-    export let mode = "wide";
+<script>
+    export let visible;
 </script>
 
-<div class="sidebar {active ? 'open': ''} {mode}">
+{#if visible}
+<div class="sidebar {visible?'':'hidden'}">
     <slot/>
 </div>
+{/if}
 
 <style>    
-    .sidebar {        
-        display: none;
-        height: 100%;
-        position: relative;
-        vertical-align: top;     
-        background: #cccccc;   
-        padding: 10px;
-    }
-
-    .wide
-    {
-        width: 500px;
-    }
-
-    .narrow
-    {
-        width: 250px;
-    }
-
-    .open {
+    .sidebar {
         display: table-cell;
+        width: 250px;               
+        background: lightgray;
     }
 </style>

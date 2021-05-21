@@ -9,7 +9,7 @@ export default class StartsWithSRobot extends Robot {
         this.name = "Starts with s robot"        
     }
 
-    async process(text) {
+    async doProcess(text) {
         const regex = /\w+[æøåÆØÅ|\w+]*/g;
         
         var values = [];
@@ -21,7 +21,8 @@ export default class StartsWithSRobot extends Robot {
                     {
                         word: word,
                         color: this.color,
-                        index: result.index
+                        index: result.index,
+                        label: 's'
                     });
             }
         }

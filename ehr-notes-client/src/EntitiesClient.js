@@ -20,6 +20,7 @@ export default class EntitiesClient {
                     word
                     color
                     index
+                    label
                 }}}`;
 
                 this.entitiesChangedSubscription = subscribe(ENTITIESCHANGED_SUBSCRIPTION, {

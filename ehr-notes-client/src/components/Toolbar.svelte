@@ -3,7 +3,6 @@
   import { createEventDispatcher } from 'svelte';
 
   export let editor;
-  export let settings;
   export let sidebar;
 
   const dispatch = createEventDispatcher();
@@ -66,11 +65,7 @@
           class="toolbar-button material-icons"
           class:active={sidebar}
           on:click={() => dispatch("toggleSidebar")}>view_sidebar
-        </button>
-        <button class="toolbar-button material-icons"
-          class:active={settings}
-          on:click={() => dispatch("toggleSettings")}>settings
-        </button>
+        </button>       
       </div>
     </div>
   </Toolbar>

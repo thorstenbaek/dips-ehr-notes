@@ -10,16 +10,15 @@
     import Settings from "./Settings.svelte";
     import Session from "./Session.svelte";    
     import Avatars from "./Avatars.svelte";
-    import Robots from "./Robots.svelte";
-    import Background from "./Background.svelte";
+    import RobotsLayer from "./RobotsLayer.svelte";
+    import RobotsPanel from "./RobotsPanel.svelte";
     import {changeDocument, session, instance, subscribeForDocumentChanges, changeSelection, subscribeForSelectionChanges} from "../SessionsStore";  
     import OtClient from "../OtClient";  
     import EntitiesClient from "../EntitiesClient";
 
     export let document = null;
     
-    let sidebar = false;   
-    let settings = true;         
+    let sidebar = true;   
     let isUpdating = false;
     let editor = new Editor();        
     let avatars = {};    
@@ -146,16 +145,9 @@
     }
 
     function toggleSidebar() {
-        sidebar = !sidebar;
-        settings = false;
+        sidebar = !sidebar;    
         canvasElement?.redraw();
     }   
-
-    function toggleSettings() {
-       settings = !settings; 
-       sidebar = false;
-       canvasElement?.redraw();
-    }
     
 </script>      
     <svelte:window bind:innerHeight={windowHeight} bind:innerWidth={windowWidth}/>
@@ -164,29 +156,21 @@
     
         <div class="header" bind:clientHeight={editorTop}>           
             <Session id={document.id} editor={editor} on:onSessionClosed={onSessionClosed}/>    
-            <Toolbar {editor} {sidebar} {settings}
-                on:toggleSidebar={toggleSidebar}
-                on:toggleSettings={toggleSettings}/>            
+            <Toolbar {editor} {sidebar} on:toggleSidebar={toggleSidebar}/>            
         </div>
         <div class="scroll" bind:this={contentElement} bind:clientWidth={contentWidth} bind:clientHeight={contentHeight} style="--editor-top: {editorTop}px">
             <div class="content" >
-                <div class="editor" use:asRoot={editor} spellcheck="false"/>
-                {#if sidebar}
-                    <div class="sidepanel">
-                        <Sidebar/>
-                    </div>
-                {:else if settings}
-                    <div class="sidepanel">
-                        <Settings/>
-                    </div>
-                {/if}                
+                <div class="editor" use:asRoot={editor} spellcheck="false"/>                
+                <Sidebar visible={sidebar}>
+                    <Settings/>
+                    <RobotsPanel {robots}/>
+                </Sidebar>           
             </div>
         </div>
         <div class="overlay" bind:clientHeight={overlayHeight} bind:clientWidth="{overlayWidth}" style="--editor-top: {editorTop}px; --content-right: {contentScrollWidth}px">
             <Canvas width={canvasWidth} height={canvasHeight} bind:this={canvasElement} >                
-                <!-- <Background/> -->
                 <Avatars {editorTop} {editor} {avatars} users={$session?.users}/> 
-                <Robots {editorTop} {editor} {robots}/>
+                <RobotsLayer {editorTop} {editor} {robots}/>
             </Canvas>
         </div>     
     {/if}
@@ -209,6 +193,8 @@
     }
 
     .content {            
+        height: 100%;
+        width: 100%;
         display: table;		
     }
     
@@ -217,6 +203,8 @@
         padding: 25px 12px;
         border: none;
         background: white;
+        min-width: 450px;
+        width: calc(100% - 250px);
     }
 
     .editor:active {
@@ -225,13 +213,7 @@
   
     .editor:focus {
         border: none;
-    } 
-
-    .sidepanel {
-        display: table-cell;
-        width: 200px;                
-        background: lightgray;
-    }  
+    }    
     
     .overlay {
         position: absolute;

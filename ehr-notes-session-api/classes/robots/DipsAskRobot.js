@@ -11,7 +11,7 @@ export default class DipsAskRobot extends Robot {
         this.name = "DIPS Ask";
     }
 
-    async process(text) {
+    async doProcess(text) {
         const params = {
             "corpus": text
         };
@@ -25,8 +25,7 @@ export default class DipsAskRobot extends Robot {
                     },
                     method: "post",
                     body: JSON.stringify(params)
-                }); 
-            
+                });             
             
             var values = [];
             const results = await response.json();            
@@ -35,11 +34,12 @@ export default class DipsAskRobot extends Robot {
                 {
                     word: result.text,
                     color: this.color,
-                    index: result.start
+                    index: result.start,
+                    label: result.label
                 });
             });
-            
-            return values;
+                        
+            return values;            
 
         } catch (error) {
             

@@ -9,7 +9,7 @@ export default class RegExpRobot extends Robot {
         this.name = "Regexp robot"        
     }
 
-    async process(text) {
+    async doProcess(text) {
         const regex = /\w+[æøåÆØÅ|\w+]*/g;
         
         var values = [];

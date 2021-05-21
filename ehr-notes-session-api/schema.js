@@ -32,6 +32,7 @@ const typeDefs = `
     word: String!
     color: String!
     index: Int!
+    label: String
   }
 
   type RobotResult {
