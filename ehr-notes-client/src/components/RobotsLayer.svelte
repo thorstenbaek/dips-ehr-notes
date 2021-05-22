@@ -9,15 +9,15 @@
         context.globalAlpha = 0.25;                 
 
         if (editor && robots) {
-            console.log(robots);
             for(const [key, value] of Object.entries(robots)) {            
-                console.log(value);
-                value.entities.map(entity => {
-                    var r = editor.getBounds([entity.index, entity.index + entity.word.length]);      
-                    context.fillStyle = entity.color;                                                   
-                    context.fillRect(r.x, r.y - editorTop, r.width, r.height);           
-                    
-                });
+                if (value?.entities) {
+                    value.entities.map(entity => {
+                        var r = editor.getBounds([entity.index, entity.index + entity.word.length]);      
+                        context.fillStyle = entity.color;                                                   
+                        context.fillRect(r.x, r.y - editorTop, r.width, r.height);           
+                        
+                    });
+                }
             };
         }
     }

@@ -1,6 +1,30 @@
-  html {
-	--background-color: #f4f4f4;
+:root {
+    --background-color: #f4f4f4;
+	  --dips-red: #cd3925;
+    --dips-blue: #06082d;
+    --lightest-gray: #e9ecef;
+    --lighter-gray: #d4d7d9;
+    --gray: #7a7e82;
+    --dark-gray: #3c3f42;
+    --lightest-blue: #d9ecf0;
+    --lighter-blue: #b4dee5;
+    --blue: #558c9f;
+    --dark-blue: #1b4b5c;
+    /*lightest_cold_green: "#d9efe5",
+    lighter_cold_green: "#b5e4d5",
+    cold_green: "#579c8e",
+    dark_cold_green: "#1c545c",
+    lightest_orange: "#fdedcb",
+    lighter_orange: "#f7cca4",*/
+    --orange: #df6f35;
+    /*dark_orange: "#ad4219",
+    lightest_warm_green: "#d5e8cb",
+    lighter_warm_green: "#bce3b0",
+    warm_green: "#60975d",
+    dark_warm_green: "#225628",*/
+}
 
+html {
 	padding: 0;
 	margin: 0;
 	height: 100%;	

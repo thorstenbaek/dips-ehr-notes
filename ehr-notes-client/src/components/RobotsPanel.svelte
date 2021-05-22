@@ -1,11 +1,12 @@
 <script>
+    import Accordion from "./Accordion.svelte";
     import RobotPanel from "./RobotPanel.svelte";
 
     export let robots;
 </script>
 
 {#if robots}
-    {#each Object.entries(robots) as [name, robot]}
-        <RobotPanel {name} {robot}/>
-    {/each}
+    <Accordion items={robots} let:value let:key>                
+        <RobotPanel name={key} robot={value}/>
+    </Accordion>
 {/if}

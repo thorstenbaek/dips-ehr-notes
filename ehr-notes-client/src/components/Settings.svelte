@@ -2,6 +2,7 @@
 <script>
     import {session, disableRobot, enableRobot} from "../SessionsStore";
     
+    export let visible;
     let robots = [];
 
     session.subscribe(s => {      
@@ -32,25 +33,42 @@
 
 </script>
 
-{#if $session?.robots}
-    <ul>    
-        <h3>Robots</h3>
-        {#each $session.robots as robot}
-        <li>
-            <label>
-                <input type="checkbox" value={robot.name} on:click={robotClick} checked={robots.some(r => r == robot.name)}/>
-                {robot.name}
-            </label>
-        </li>
-        {/each}
-    </ul>
+{#if visible && $session?.robots}
+    <div class="settings">
+        <h4>NLP Settings</h4>
+        <p>Select NLP-Robots to activate</p>
+        <ul>    
+            {#each $session.robots as robot}
+            <li>
+                <label>
+                    <input type="checkbox" value={robot.name} on:click={robotClick} checked={robots.some(r => r == robot.name)}/>
+                    {robot.name}
+                </label>
+            </li>
+            {/each}
+        </ul>
+    </div>
 {/if}
 
 <style>
+    .settings {
+        margin: 4px;
+        padding: 4px;
+        background: #e9ecef;    
+    }
+
     ul {
-        padding: 0 0 0 10px;
+        margin: 0;
+        padding: 0;
     }
     li {
         display: inline;        
+    }
+
+    p { 
+        margin: 0 0 5px 0;
+    }
+    h4 {
+        margin: 0 0 5px 0;
     }
 </style>

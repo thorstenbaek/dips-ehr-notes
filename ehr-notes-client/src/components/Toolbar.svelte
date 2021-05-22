@@ -4,6 +4,7 @@
 
   export let editor;
   export let sidebar;
+  export let settings;
 
   const dispatch = createEventDispatcher();
 
@@ -66,6 +67,11 @@
           class:active={sidebar}
           on:click={() => dispatch("toggleSidebar")}>view_sidebar
         </button>       
+        <button
+          class="toolbar-button material-icons"
+          class:active={settings}
+          on:click={() => dispatch("toggleSettings")}>settings
+        </button>     
       </div>
     </div>
   </Toolbar>

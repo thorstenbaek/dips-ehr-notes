@@ -24,31 +24,23 @@
     }
 
     $: {        
-        hasEntities = robot?.entities.length > 0;    
-        
-        groups = groupBy(robot?.entities, e => e.label);
+        hasEntities = robot?.entities?.length > 0;    
+        if (robot?.entities) {
+          groups = groupBy(robot?.entities, e => e.label);
+        }
     }
 </script>
 
 
 {#if hasEntities}
 <div class="entities">
-    <h1>
-    <button class="material-icons" on:click={toggleCollapsed}>
-        {collapsed?"expand_more":"expand_less"}
-    </button> {name}
-    </h1>   
-    {#if !collapsed}
-        
-        <p>Found {robot?.entities.length} entities</p>
-
-            {#each [...groups] as [key, value]}
+        {#each [...groups] as [key, value]}
             <h2>{key}</h2>
             {#each value as v}
                 <p>{v.word}</p>
             {/each}
         {/each}
-    {/if}
+    
 </div>
 {/if}
 <style>
@@ -67,11 +59,6 @@
     p {
         padding: 0;
         margin: 0;
-    }
-    .entities {
-        background: #fefefe;
-        margin: 5px;
-        padding: 5px;
     }
 </style>
 

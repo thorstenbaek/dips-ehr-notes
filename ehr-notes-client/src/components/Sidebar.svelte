@@ -11,7 +11,10 @@
 <style>    
     .sidebar {
         display: table-cell;
-        width: 250px;               
-        background: lightgray;
+        vertical-align: top;
+        padding: 0;        
+        margin: 0;
+        width: 250px;                       
+        background: #d4d7d9;        
     }
 </style>

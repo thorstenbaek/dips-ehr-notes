@@ -42,7 +42,7 @@ export default class RobotSession {
             r[0].enabled = value;            
                         
             if (!value) {                 
-                this.publish(this.session.id, r[0].name, []);
+                this.publish(this.session.id, name, []);
             } else {
                 this.update();
             }

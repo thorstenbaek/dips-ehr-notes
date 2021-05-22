@@ -19,6 +19,7 @@
     export let document = null;
     
     let sidebar = true;   
+    let settings = false;
     let isUpdating = false;
     let editor = new Editor();        
     let avatars = {};    
@@ -125,7 +126,6 @@
 
     function onEntitiesChanged(data) {        
         if (data) {
-            console.log("entities changed", data)
             robots[data.name] = {
                 entities: data.entities,
                 color: data.color }
@@ -147,7 +147,14 @@
     function toggleSidebar() {
         sidebar = !sidebar;    
         canvasElement?.redraw();
-    }   
+    }  
+    
+    function toggleSettings() {
+        settings = !settings;
+        if (settings) {
+            sidebar = true;
+        }
+    }
     
 </script>      
     <svelte:window bind:innerHeight={windowHeight} bind:innerWidth={windowWidth}/>
@@ -156,13 +163,13 @@
     
         <div class="header" bind:clientHeight={editorTop}>           
             <Session id={document.id} editor={editor} on:onSessionClosed={onSessionClosed}/>    
-            <Toolbar {editor} {sidebar} on:toggleSidebar={toggleSidebar}/>            
+            <Toolbar {editor} {sidebar} {settings} on:toggleSidebar={toggleSidebar} on:toggleSettings={toggleSettings}/>            
         </div>
         <div class="scroll" bind:this={contentElement} bind:clientWidth={contentWidth} bind:clientHeight={contentHeight} style="--editor-top: {editorTop}px">
             <div class="content" >
                 <div class="editor" use:asRoot={editor} spellcheck="false"/>                
-                <Sidebar visible={sidebar}>
-                    <Settings/>
+                <Sidebar visible={sidebar}>                    
+                    <Settings visible={settings}/>
                     <RobotsPanel {robots}/>
                 </Sidebar>           
             </div>
@@ -195,7 +202,7 @@
     .content {            
         height: 100%;
         width: 100%;
-        display: table;		
+        display: table;		        
     }
     
     .editor {
