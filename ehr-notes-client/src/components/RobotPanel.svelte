@@ -1,5 +1,4 @@
 <script>
-    export let name;
     export let robot;
     let collapsed = false;
     let hasEntities = false;    
@@ -23,6 +22,18 @@
         collapsed = !collapsed;
     }
 
+    function lighten(hex){
+        var c;
+        if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
+            c= hex.substring(1).split('');
+            if(c.length== 3){
+                c= [c[0], c[0], c[1], c[1], c[2], c[2]];
+            }
+            c= '0x'+c.join('');
+            return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+',0.25)';
+        } 
+    }
+
     $: {        
         hasEntities = robot?.entities?.length > 0;    
         if (robot?.entities) {
@@ -35,7 +46,7 @@
 {#if hasEntities}
 <div class="entities">
         {#each [...groups] as [key, value]}
-            <h2>{key}</h2>
+            <h2 style="background: {lighten(value[0].color)}">{key}</h2>
             {#each value as v}
                 <p>{v.word}</p>
             {/each}
@@ -46,12 +57,7 @@
 <style>
     * {
         font-size: 0.9em;
-    }
-    h1 {
-        font-size: 1.2em;
-        padding: 0;
-        margin: 0;
-    }
+    }   
     h2 {
         font-size: 1em;
         margin: 5px 0;

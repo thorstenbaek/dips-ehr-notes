@@ -4,6 +4,21 @@ import Robot from "./Robot.js";
 
 const normedtermurl = "http://localhost:8989/api/check";
 
+const color_map = {
+    "CONDITION": dipsColors.dips_red,
+    "ANAT-LOC": dipsColors.warm_green,    
+    "PROCEDURE": dipsColors.blue,    
+    "DISCIPLINE": dipsColors.blue,    
+    "SUBSTANCE": dipsColors.orange,    
+    "MICROORGANISM": dipsColors.orange,
+    "PHYSIOLOGY": dipsColors.cold_green,
+    "ORGANIZATION": dipsColors.gray,
+    "OTHER": dipsColors.gray,
+    "PERSON": dipsColors.gray,
+    "TOOL": dipsColors.gray,
+    "ABBREV": dipsColors.gray
+}
+
 export default class NorMedTermRobot extends Robot {
     constructor(enabled) {
         super(enabled);
@@ -32,7 +47,7 @@ export default class NorMedTermRobot extends Robot {
                     values.push(
                     {
                         word: result.term,
-                        color: this.color,
+                        color: color_map[result.label],
                         index: i-1,
                         label: result.label
                     });
