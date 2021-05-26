@@ -17,7 +17,7 @@
 
 </script>   
 {#if entities?.length > 0}
-<p>Anatomy</p>
+
 <div class="panel">
     <Canvas width="110" height="230">
         <HumanBody />
@@ -28,6 +28,6 @@
 <style>
     .panel {
         background: white;
-        margin: 0 75px 0 75px;
+        margin: 0 55px 0 55px;
     }
 </style>

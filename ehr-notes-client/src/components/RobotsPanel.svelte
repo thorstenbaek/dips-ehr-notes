@@ -10,10 +10,11 @@
     <Accordion items={robots} let:value let:key>
         <RobotPanel name={key} robot={value}/>                
     </Accordion>
-    
-    <div class="anatomyPanel">
-        <AnatomyPanel {robots}/>
-    </div>
+    <Accordion items={robots} title="Anatomy" let:value let:key>
+        <div class="anatomyPanel">
+            <AnatomyPanel {robots}/>
+        </div>
+    </Accordion>
 {/if}
 
 <style>

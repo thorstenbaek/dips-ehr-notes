@@ -1,9 +1,8 @@
 <script>
-    import { valueFromAST } from "graphql";
-import { slide } from "svelte/transition";
-import EntitiesClient from "../EntitiesClient";
+    import { slide } from "svelte/transition";
 	
     export let items;
+    export let title;
 
     let showContent;
     let entries;
@@ -24,8 +23,16 @@ import EntitiesClient from "../EntitiesClient";
         {#if value.entities.length > 0}     
         <div class="accordion">
             <div class="header" on:click={showCollapse(key)}>
-            <span>{key} ({value.entities.length})</span>
-            <span class="material-icons button">expand_more</span>
+                {#if title}
+                    {title}
+                {:else}
+                    <span>{key} ({value.entities.length})</span>                    
+                {/if}
+                {#if showContent}
+                    <span class="material-icons button">expand_less</span>
+                {:else}
+                    <span class="material-icons button">expand_more</span>
+                {/if}
             </div>
             {#if showContent===key}
             <div class="content" transition:slide>
