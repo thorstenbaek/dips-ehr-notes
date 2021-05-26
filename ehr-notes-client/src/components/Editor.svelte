@@ -18,7 +18,7 @@
 
     export let document = null;
     
-    let sidebar = true;   
+    let sidebar = false;   
     let settings = false;
     let isUpdating = false;
     let editor = new Editor();        
@@ -158,9 +158,7 @@
     
 </script>      
     <svelte:window bind:innerHeight={windowHeight} bind:innerWidth={windowWidth}/>
-    {#if document}       
-        <p>{document.id}</p>
-    
+    {#if document}                   
         <div class="header" bind:clientHeight={editorTop}>           
             <Session id={document.id} editor={editor} on:onSessionClosed={onSessionClosed}/>    
             <Toolbar {editor} {sidebar} {settings} on:toggleSidebar={toggleSidebar} on:toggleSettings={toggleSettings}/>            

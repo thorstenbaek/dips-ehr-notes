@@ -8,7 +8,7 @@ export default class RobotManager {
         this.robotDefinitions = {
             "Starts with e robot": () => new StartsWithERobot(false),
             "Starts with s robot": () => new StartsWithSRobot(false),
-            "DIPS Ask": () => new DipsAskRobot(true),
+            "DIPS Ask": () => new DipsAskRobot(false),
             "NorMedTerm": () => new NorMedTermRobot(false)
         }
 

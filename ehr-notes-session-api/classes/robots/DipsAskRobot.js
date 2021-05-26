@@ -52,6 +52,7 @@ export default class DipsAskRobot extends Robot {
             results.map(result => {
                 values.push(
                 {
+                    id: result.id,
                     word: result.text,
                     color: (result.label in color_map) ? color_map[result.label] : dipsColors.gray,
                     index: result.start,

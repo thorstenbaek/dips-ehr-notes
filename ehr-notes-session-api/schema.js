@@ -29,6 +29,7 @@ const typeDefs = `
   }
 
   type Entity {
+    id: String
     word: String!
     color: String!
     index: Int!
